@@ -999,6 +999,12 @@ app.get('/prompt/:id', (c) => {
           // Copy button event listener
           document.getElementById('copy-prompt-btn').addEventListener('click', async function(event) {
             try {
+              // Check if promptData is loaded
+              if (!promptData || !promptData.prompt_text) {
+                alert('プロンプトを読み込み中です。もう一度お試しください。');
+                return;
+              }
+              
               await navigator.clipboard.writeText(promptData.prompt_text);
               const btn = event.currentTarget;
               const originalHTML = btn.innerHTML;
