@@ -637,12 +637,19 @@ app.get('/prompt/:id', (c) => {
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                画像URL <span class="text-gray-400 text-xs">(任意)</span>
+                                画像 <span class="text-gray-400 text-xs">(任意)</span>
                             </label>
-                            <input type="url" id="image-url"
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
-                                placeholder="https://example.com/image.jpg">
-                            <p class="text-xs text-gray-500 mt-1">生成した画像のURLを貼り付けてください</p>
+                            <div class="space-y-2">
+                                <input type="file" id="feedback-image-file" accept="image/*"
+                                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none">
+                                <div id="feedback-image-preview" class="hidden">
+                                    <img id="feedback-preview-img" class="w-32 h-32 object-cover rounded-lg border-2 border-gray-200">
+                                </div>
+                                <input type="url" id="image-url"
+                                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                                    placeholder="画像をアップロード or URLを入力" readonly>
+                                <p class="text-xs text-gray-500">生成した画像をアップロードまたはURLを入力</p>
+                            </div>
                         </div>
                         <button type="submit" class="submit-btn text-white px-8 py-3 rounded-lg font-medium w-full">
                             <i class="fas fa-paper-plane mr-2"></i>投稿する
@@ -766,6 +773,47 @@ app.get('/prompt/:id', (c) => {
             }
           }
 
+          // Upload feedback image
+          async function uploadFeedbackImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+              const response = await axios.post('/api/admin/upload', formData, {
+                headers: {
+                  'Content-Type': 'multipart/form-data'
+                }
+              });
+              return response.data.url;
+            } catch (error) {
+              console.error('Upload error:', error);
+              throw error;
+            }
+          }
+
+          // Handle feedback image upload
+          document.getElementById('feedback-image-file').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+              // Show preview
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                document.getElementById('feedback-preview-img').src = e.target.result;
+                document.getElementById('feedback-image-preview').classList.remove('hidden');
+              };
+              reader.readAsDataURL(file);
+
+              // Upload
+              const url = await uploadFeedbackImage(file);
+              document.getElementById('image-url').value = url;
+              alert('画像をアップロードしました');
+            } catch (error) {
+              alert('アップロードに失敗しました');
+            }
+          });
+
           // Submit feedback
           document.getElementById('feedback-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -793,6 +841,7 @@ app.get('/prompt/:id', (c) => {
                 
                 // Reset form
                 document.getElementById('feedback-form').reset();
+                document.getElementById('feedback-image-preview').classList.add('hidden');
                 
                 // Show success message
                 alert('感想を投稿しました!');
@@ -916,22 +965,32 @@ app.get('/admin', (c) => {
                                 placeholder="プロンプトの内容を入力してください"></textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">サムネイル画像URL</label>
-                            <input type="url" id="prompt-thumbnail" required
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
-                                placeholder="https://example.com/image.jpg">
-                            <p class="text-xs text-gray-500 mt-1">一覧ページに表示される画像</p>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">サムネイル画像</label>
+                            <div class="space-y-2">
+                                <input type="file" id="thumbnail-file" accept="image/*"
+                                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none">
+                                <div id="thumbnail-preview" class="hidden">
+                                    <img id="thumbnail-preview-img" class="w-32 h-40 object-cover rounded-lg border-2 border-gray-200">
+                                </div>
+                                <input type="url" id="prompt-thumbnail" required
+                                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                                    placeholder="画像をアップロード or URLを入力" readonly>
+                                <p class="text-xs text-gray-500">一覧ページに表示される画像 (アップロードすると自動的にURLが入ります)</p>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                詳細ページ画像URL (複数可、1行に1URL)
+                                詳細ページ画像 (最大5枚)
                             </label>
-                            <textarea id="prompt-images" rows="5"
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none font-mono text-sm"
-                                placeholder="https://example.com/image1.jpg
-https://example.com/image2.jpg
-https://example.com/image3.jpg"></textarea>
-                            <p class="text-xs text-gray-500 mt-1">詳細ページに4:5比率で表示される画像(最大5列)</p>
+                            <div class="space-y-2">
+                                <input type="file" id="detail-files" accept="image/*" multiple
+                                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none">
+                                <div id="detail-preview" class="hidden grid grid-cols-5 gap-2"></div>
+                                <textarea id="prompt-images" rows="5"
+                                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none font-mono text-sm"
+                                    placeholder="画像をアップロード or URLを入力 (1行に1URL)" readonly></textarea>
+                                <p class="text-xs text-gray-500">詳細ページに4:5比率で表示される画像(アップロードすると自動的にURLが入ります)</p>
+                            </div>
                         </div>
                         <button type="submit" class="submit-btn text-white px-8 py-3 rounded-lg font-medium w-full">
                             <i class="fas fa-save mr-2"></i>プロンプトを追加
@@ -1183,6 +1242,86 @@ https://example.com/image3.jpg"></textarea>
               alert('削除に失敗しました');
             }
           }
+
+          // Upload image
+          async function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+              const response = await axios.post('/api/admin/upload', formData, {
+                headers: {
+                  'Content-Type': 'multipart/form-data'
+                }
+              });
+              return response.data.url;
+            } catch (error) {
+              console.error('Upload error:', error);
+              throw error;
+            }
+          }
+
+          // Handle thumbnail upload
+          document.getElementById('thumbnail-file').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+              // Show preview
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                document.getElementById('thumbnail-preview-img').src = e.target.result;
+                document.getElementById('thumbnail-preview').classList.remove('hidden');
+              };
+              reader.readAsDataURL(file);
+
+              // Upload
+              const url = await uploadImage(file);
+              document.getElementById('prompt-thumbnail').value = url;
+              alert('サムネイル画像をアップロードしました');
+            } catch (error) {
+              alert('アップロードに失敗しました');
+            }
+          });
+
+          // Handle detail images upload
+          document.getElementById('detail-files').addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            if (files.length > 5) {
+              alert('画像は最大5枚までです');
+              return;
+            }
+
+            try {
+              const previewContainer = document.getElementById('detail-preview');
+              previewContainer.innerHTML = '';
+              previewContainer.classList.remove('hidden');
+
+              const urls = [];
+              
+              for (const file of files) {
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const img = document.createElement('img');
+                  img.src = e.target.result;
+                  img.className = 'w-full h-24 object-cover rounded-lg border-2 border-gray-200';
+                  previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+
+                // Upload
+                const url = await uploadImage(file);
+                urls.push(url);
+              }
+
+              document.getElementById('prompt-images').value = urls.join('\\n');
+              alert(\`\${files.length}枚の画像をアップロードしました\`);
+            } catch (error) {
+              alert('アップロードに失敗しました');
+            }
+          });
 
           // Submit category form
           document.getElementById('category-form').addEventListener('submit', async (e) => {
