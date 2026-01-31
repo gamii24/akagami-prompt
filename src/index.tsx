@@ -667,7 +667,7 @@ app.get('/prompt/:id', (c) => {
                             <h2 class="text-lg font-bold text-gray-800 mb-3">プロンプト</h2>
                             <p id="prompt-text" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
                         </div>
-                        <button onclick="copyPromptText(event)" class="copy-btn text-white px-6 py-3 rounded-lg font-medium flex-shrink-0">
+                        <button id="copy-prompt-btn" class="copy-btn text-white px-6 py-3 rounded-lg font-medium flex-shrink-0">
                             <i class="fas fa-copy mr-2"></i>コピー
                         </button>
                     </div>
@@ -993,6 +993,22 @@ app.get('/prompt/:id', (c) => {
             } catch (error) {
               console.error('Error submitting feedback:', error);
               alert('投稿に失敗しました。もう一度お試しください。');
+            }
+          });
+
+          // Copy button event listener
+          document.getElementById('copy-prompt-btn').addEventListener('click', async function(event) {
+            try {
+              await navigator.clipboard.writeText(promptData.prompt_text);
+              const btn = event.currentTarget;
+              const originalHTML = btn.innerHTML;
+              btn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
+              setTimeout(() => {
+                btn.innerHTML = originalHTML;
+              }, 2000);
+            } catch (error) {
+              console.error('Copy error:', error);
+              alert('コピーに失敗しました');
             }
           });
 
