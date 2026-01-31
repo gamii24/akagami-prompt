@@ -285,38 +285,43 @@ app.get('/', (c) => {
             }
           }
           .prompt-card {
-            aspect-ratio: 1;
-            position: relative;
-            overflow: hidden;
             border-radius: 0.5rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: transform 0.2s;
+            overflow: hidden;
+            background: white;
           }
           .prompt-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
           }
+          .prompt-image-wrapper {
+            aspect-ratio: 4/5;
+            overflow: hidden;
+            cursor: pointer;
+          }
           .prompt-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s;
           }
-          .prompt-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            padding: 1rem;
-            color: white;
+          .prompt-image-wrapper:hover .prompt-image {
+            transform: scale(1.05);
+          }
+          .prompt-footer {
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
           .copy-btn {
             background-color: var(--accent-color);
             transition: all 0.2s;
+            width: 100%;
           }
           .copy-btn:hover {
             background-color: #d04445;
-            transform: scale(1.05);
           }
         </style>
     </head>
@@ -411,17 +416,14 @@ app.get('/', (c) => {
               const escapedText = prompt.prompt_text.replace(/'/g, "\\\\'").replace(/"/g, '\\\\"');
               return \`
               <div class="prompt-card">
-                <img src="\${prompt.image_url}" alt="\${prompt.title}" class="prompt-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22400%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22200%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                <div class="prompt-overlay">
-                  <h3 class="font-bold text-sm mb-2 line-clamp-2">\${prompt.title}</h3>
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-xs bg-white/20 px-2 py-1 rounded">\${prompt.category_name}</span>
-                    <button onclick="copyPrompt(\${prompt.id}, '\${escapedText}')" class="copy-btn text-white px-3 py-1 rounded text-xs font-medium">
-                      <i class="fas fa-copy mr-1"></i>コピー
-                    </button>
-                  </div>
+                <div class="prompt-image-wrapper" onclick="location.href='/prompt/\${prompt.id}'">
+                  <img src="\${prompt.image_url}" alt="\${prompt.title}" class="prompt-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                 </div>
-                <a href="/prompt/\${prompt.id}" class="absolute inset-0"></a>
+                <div class="prompt-footer">
+                  <button onclick="copyPrompt(\${prompt.id}, '\${escapedText}')" class="copy-btn text-white px-4 py-2 rounded text-sm font-medium">
+                    <i class="fas fa-copy mr-2"></i>コピー
+                  </button>
+                </div>
               </div>
               \`;
             }).join('');
