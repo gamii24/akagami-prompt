@@ -1056,14 +1056,52 @@ app.get('/admin', (c) => {
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 詳細ページ追加画像 (最大4枚)
                             </label>
-                            <div class="space-y-2">
-                                <input type="file" id="detail-files" accept="image/*" multiple
-                                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none">
-                                <div id="detail-preview" class="hidden grid grid-cols-4 gap-2"></div>
-                                <textarea id="prompt-images" rows="4"
-                                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none font-mono text-sm"
-                                    placeholder="画像をアップロード or URLを入力 (1行に1URL)" readonly></textarea>
-                                <p class="text-xs text-gray-500">詳細ページの2枚目以降に表示される画像 (サムネイルが自動的に1枚目になります)</p>
+                            <p class="text-xs text-gray-500 mb-3">詳細ページの2枚目以降に表示される画像 (サムネイルが自動的に1枚目になります)</p>
+                            <div class="space-y-3">
+                                <!-- Image 1 -->
+                                <div class="flex gap-2 items-start">
+                                    <div class="flex-1">
+                                        <input type="file" id="detail-file-1" accept="image/*"
+                                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none text-sm">
+                                    </div>
+                                    <div id="detail-preview-1" class="hidden">
+                                        <img id="detail-img-1" class="w-20 h-24 object-cover rounded-lg border-2 border-gray-200">
+                                    </div>
+                                    <input type="hidden" id="detail-url-1" value="">
+                                </div>
+                                <!-- Image 2 -->
+                                <div class="flex gap-2 items-start">
+                                    <div class="flex-1">
+                                        <input type="file" id="detail-file-2" accept="image/*"
+                                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none text-sm">
+                                    </div>
+                                    <div id="detail-preview-2" class="hidden">
+                                        <img id="detail-img-2" class="w-20 h-24 object-cover rounded-lg border-2 border-gray-200">
+                                    </div>
+                                    <input type="hidden" id="detail-url-2" value="">
+                                </div>
+                                <!-- Image 3 -->
+                                <div class="flex gap-2 items-start">
+                                    <div class="flex-1">
+                                        <input type="file" id="detail-file-3" accept="image/*"
+                                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none text-sm">
+                                    </div>
+                                    <div id="detail-preview-3" class="hidden">
+                                        <img id="detail-img-3" class="w-20 h-24 object-cover rounded-lg border-2 border-gray-200">
+                                    </div>
+                                    <input type="hidden" id="detail-url-3" value="">
+                                </div>
+                                <!-- Image 4 -->
+                                <div class="flex gap-2 items-start">
+                                    <div class="flex-1">
+                                        <input type="file" id="detail-file-4" accept="image/*"
+                                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none text-sm">
+                                    </div>
+                                    <div id="detail-preview-4" class="hidden">
+                                        <img id="detail-img-4" class="w-20 h-24 object-cover rounded-lg border-2 border-gray-200">
+                                    </div>
+                                    <input type="hidden" id="detail-url-4" value="">
+                                </div>
                             </div>
                         </div>
                         <button type="submit" class="submit-btn text-white px-8 py-3 rounded-lg font-medium w-full" id="submit-btn">
@@ -1343,17 +1381,19 @@ app.get('/admin', (c) => {
                 document.getElementById('thumbnail-preview').classList.remove('hidden');
               }
 
-              // Fill image URLs
+              // Fill image URLs and show previews
               if (prompt.images && prompt.images.length > 0) {
-                const urls = prompt.images.map(img => img.image_url).join('\\n');
-                document.getElementById('prompt-images').value = urls;
-
-                // Show preview
-                const previewContainer = document.getElementById('detail-preview');
-                previewContainer.innerHTML = prompt.images.map(img => \`
-                  <img src="\${img.image_url}" class="w-full h-24 object-cover rounded-lg border-2 border-gray-200">
-                \`).join('');
-                previewContainer.classList.remove('hidden');
+                for (let i = 0; i < Math.min(prompt.images.length, 4); i++) {
+                  const img = prompt.images[i];
+                  const index = i + 1;
+                  
+                  // Set URL
+                  document.getElementById(\`detail-url-\${index}\`).value = img.image_url;
+                  
+                  // Show preview
+                  document.getElementById(\`detail-img-\${index}\`).src = img.image_url;
+                  document.getElementById(\`detail-preview-\${index}\`).classList.remove('hidden');
+                }
               }
 
               // Update form UI
@@ -1373,7 +1413,13 @@ app.get('/admin', (c) => {
             document.getElementById('prompt-form').reset();
             document.getElementById('prompt-id').value = '';
             document.getElementById('thumbnail-preview').classList.add('hidden');
-            document.getElementById('detail-preview').classList.add('hidden');
+            
+            // Clear detail image previews
+            for (let i = 1; i <= 4; i++) {
+              document.getElementById(\`detail-url-\${i}\`).value = '';
+              document.getElementById(\`detail-preview-\${i}\`).classList.add('hidden');
+            }
+            
             document.getElementById('form-title-text').textContent = 'プロンプト追加';
             document.getElementById('submit-btn-text').textContent = 'プロンプトを追加';
             document.getElementById('cancel-btn').classList.add('hidden');
@@ -1420,44 +1466,30 @@ app.get('/admin', (c) => {
             }
           });
 
-          // Handle detail images upload
-          document.getElementById('detail-files').addEventListener('change', async (e) => {
-            const files = Array.from(e.target.files);
-            if (files.length === 0) return;
-            if (files.length > 4) {
-              alert('追加画像は最大4枚までです');
-              return;
-            }
+          // Handle detail images upload (individual)
+          for (let i = 1; i <= 4; i++) {
+            document.getElementById(\`detail-file-\${i}\`).addEventListener('change', async (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
 
-            try {
-              const previewContainer = document.getElementById('detail-preview');
-              previewContainer.innerHTML = '';
-              previewContainer.classList.remove('hidden');
-
-              const urls = [];
-              
-              for (const file of files) {
+              try {
                 // Show preview
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                  const img = document.createElement('img');
-                  img.src = e.target.result;
-                  img.className = 'w-full h-24 object-cover rounded-lg border-2 border-gray-200';
-                  previewContainer.appendChild(img);
+                  document.getElementById(\`detail-img-\${i}\`).src = e.target.result;
+                  document.getElementById(\`detail-preview-\${i}\`).classList.remove('hidden');
                 };
                 reader.readAsDataURL(file);
 
                 // Upload
                 const url = await uploadImage(file);
-                urls.push(url);
+                document.getElementById(\`detail-url-\${i}\`).value = url;
+                alert(\`画像\${i}をアップロードしました\`);
+              } catch (error) {
+                alert('アップロードに失敗しました');
               }
-
-              document.getElementById('prompt-images').value = urls.join('\\n');
-              alert(\`\${files.length}枚の画像をアップロードしました\`);
-            } catch (error) {
-              alert('アップロードに失敗しました');
-            }
-          });
+            });
+          }
 
           // Submit category form
           document.getElementById('category-form').addEventListener('submit', async (e) => {
@@ -1489,18 +1521,20 @@ app.get('/admin', (c) => {
             const categoryId = document.getElementById('prompt-category').value;
             const promptText = document.getElementById('prompt-text').value.trim();
             const thumbnail = document.getElementById('prompt-thumbnail').value.trim();
-            const imagesText = document.getElementById('prompt-images').value.trim();
 
             if (!title || !categoryId || !promptText || !thumbnail) {
               alert('すべての必須項目を入力してください');
               return;
             }
 
-            // Parse image URLs
-            const imageUrls = imagesText
-              .split('\\n')
-              .map(url => url.trim())
-              .filter(url => url.length > 0);
+            // Collect detail image URLs
+            const imageUrls = [];
+            for (let i = 1; i <= 4; i++) {
+              const url = document.getElementById(\`detail-url-\${i}\`).value.trim();
+              if (url) {
+                imageUrls.push(url);
+              }
+            }
 
             try {
               if (promptId) {
