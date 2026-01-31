@@ -95,6 +95,142 @@ app.post('/api/feedbacks', async (c) => {
   return c.json({ success: true, id: result.meta.last_row_id })
 })
 
+// Admin API - Categories
+app.post('/api/admin/categories', async (c) => {
+  const { DB } = c.env
+  const { name } = await c.req.json()
+  
+  if (!name) {
+    return c.json({ error: 'name is required' }, 400)
+  }
+  
+  try {
+    const result = await DB.prepare(`
+      INSERT INTO categories (name) VALUES (?)
+    `).bind(name).run()
+    
+    return c.json({ success: true, id: result.meta.last_row_id })
+  } catch (error) {
+    return c.json({ error: 'Category already exists or database error' }, 400)
+  }
+})
+
+app.put('/api/admin/categories/:id', async (c) => {
+  const { DB } = c.env
+  const id = c.req.param('id')
+  const { name } = await c.req.json()
+  
+  if (!name) {
+    return c.json({ error: 'name is required' }, 400)
+  }
+  
+  await DB.prepare(`
+    UPDATE categories SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?
+  `).bind(name, id).run()
+  
+  return c.json({ success: true })
+})
+
+app.delete('/api/admin/categories/:id', async (c) => {
+  const { DB } = c.env
+  const id = c.req.param('id')
+  
+  await DB.prepare(`DELETE FROM categories WHERE id = ?`).bind(id).run()
+  
+  return c.json({ success: true })
+})
+
+// Admin API - Prompts
+app.post('/api/admin/prompts', async (c) => {
+  const { DB } = c.env
+  const { title, prompt_text, category_id, image_url, image_urls } = await c.req.json()
+  
+  if (!title || !prompt_text || !category_id || !image_url) {
+    return c.json({ error: 'title, prompt_text, category_id, and image_url are required' }, 400)
+  }
+  
+  // Insert prompt
+  const result = await DB.prepare(`
+    INSERT INTO prompts (title, prompt_text, image_url, category_id)
+    VALUES (?, ?, ?, ?)
+  `).bind(title, prompt_text, image_url, category_id).run()
+  
+  const promptId = result.meta.last_row_id
+  
+  // Insert additional images if provided
+  if (image_urls && Array.isArray(image_urls) && image_urls.length > 0) {
+    for (let i = 0; i < image_urls.length; i++) {
+      await DB.prepare(`
+        INSERT INTO prompt_images (prompt_id, image_url, display_order)
+        VALUES (?, ?, ?)
+      `).bind(promptId, image_urls[i], i).run()
+    }
+  }
+  
+  return c.json({ success: true, id: promptId })
+})
+
+app.delete('/api/admin/prompts/:id', async (c) => {
+  const { DB } = c.env
+  const id = c.req.param('id')
+  
+  await DB.prepare(`DELETE FROM prompts WHERE id = ?`).bind(id).run()
+  
+  return c.json({ success: true })
+})
+
+// Admin API - Image Upload (simulate)
+app.post('/api/admin/upload', async (c) => {
+  const { R2 } = c.env
+  const formData = await c.req.formData()
+  const file = formData.get('file')
+  
+  if (!file || !(file instanceof File)) {
+    return c.json({ error: 'No file uploaded' }, 400)
+  }
+  
+  try {
+    const arrayBuffer = await file.arrayBuffer()
+    const filename = `${Date.now()}-${file.name}`
+    
+    await R2.put(filename, arrayBuffer, {
+      httpMetadata: {
+        contentType: file.type
+      }
+    })
+    
+    // Return a placeholder URL (in production, use your R2 bucket URL)
+    const imageUrl = `/api/images/${filename}`
+    
+    return c.json({ success: true, url: imageUrl })
+  } catch (error) {
+    return c.json({ error: 'Upload failed' }, 500)
+  }
+})
+
+// Serve uploaded images
+app.get('/api/images/:filename', async (c) => {
+  const { R2 } = c.env
+  const filename = c.req.param('filename')
+  
+  try {
+    const object = await R2.get(filename)
+    
+    if (!object) {
+      return c.notFound()
+    }
+    
+    return new Response(object.body, {
+      headers: {
+        'Content-Type': object.httpMetadata?.contentType || 'application/octet-stream',
+        'Cache-Control': 'public, max-age=31536000'
+      }
+    })
+  } catch (error) {
+    return c.notFound()
+  }
+})
+
 // Home page
 app.get('/', (c) => {
   return c.html(`
@@ -637,6 +773,445 @@ app.get('/prompt/:id', (c) => {
 
           // Initialize
           loadPrompt();
+        </script>
+    </body>
+    </html>
+  `)
+})
+
+// Admin page
+app.get('/admin', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>管理画面</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <style>
+          :root {
+            --accent-color: #E75556;
+          }
+          .accent-bg {
+            background-color: var(--accent-color);
+          }
+          .accent-text {
+            color: var(--accent-color);
+          }
+          .accent-border {
+            border-color: var(--accent-color);
+          }
+          .tab-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+          }
+          .submit-btn {
+            background-color: var(--accent-color);
+            transition: all 0.2s;
+          }
+          .submit-btn:hover {
+            background-color: #d04445;
+          }
+          .delete-btn {
+            color: var(--accent-color);
+            transition: all 0.2s;
+          }
+          .delete-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+          }
+        </style>
+    </head>
+    <body class="bg-gray-50">
+        <!-- Header -->
+        <header class="accent-bg text-white py-6 shadow-md">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-3xl font-bold">
+                        <i class="fas fa-tools mr-2"></i>
+                        管理画面
+                    </h1>
+                    <a href="/" class="text-white hover:opacity-80 transition">
+                        <i class="fas fa-home mr-2"></i>
+                        サイトを見る
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <div class="flex gap-2 mb-6 border-b-2 border-gray-200">
+                <button onclick="switchTab('prompts')" class="tab-btn active px-6 py-3 font-medium transition rounded-t-lg" id="tab-prompts">
+                    <i class="fas fa-images mr-2"></i>プロンプト管理
+                </button>
+                <button onclick="switchTab('categories')" class="tab-btn px-6 py-3 font-medium transition rounded-t-lg text-gray-600 hover:bg-gray-100" id="tab-categories">
+                    <i class="fas fa-tags mr-2"></i>カテゴリ管理
+                </button>
+            </div>
+
+            <!-- Prompts Tab -->
+            <div id="content-prompts" class="tab-content">
+                <!-- Add Prompt Form -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-plus-circle mr-2 accent-text"></i>
+                        プロンプト追加
+                    </h2>
+                    <form id="prompt-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">タイトル</label>
+                            <input type="text" id="prompt-title" required
+                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                                placeholder="プロンプトのタイトル">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
+                            <select id="prompt-category" required
+                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none">
+                                <option value="">選択してください</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">プロンプト本文</label>
+                            <textarea id="prompt-text" rows="6" required
+                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                                placeholder="プロンプトの内容を入力してください"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">サムネイル画像URL</label>
+                            <input type="url" id="prompt-thumbnail" required
+                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                                placeholder="https://example.com/image.jpg">
+                            <p class="text-xs text-gray-500 mt-1">一覧ページに表示される画像</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                詳細ページ画像URL (複数可、1行に1URL)
+                            </label>
+                            <textarea id="prompt-images" rows="5"
+                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none font-mono text-sm"
+                                placeholder="https://example.com/image1.jpg
+https://example.com/image2.jpg
+https://example.com/image3.jpg"></textarea>
+                            <p class="text-xs text-gray-500 mt-1">詳細ページに4:5比率で表示される画像(最大5列)</p>
+                        </div>
+                        <button type="submit" class="submit-btn text-white px-8 py-3 rounded-lg font-medium w-full">
+                            <i class="fas fa-save mr-2"></i>プロンプトを追加
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Prompts List -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-list mr-2 accent-text"></i>
+                        登録済みプロンプト
+                    </h2>
+                    <div id="prompts-list" class="space-y-3">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                            <p class="mt-2">読み込み中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Tab -->
+            <div id="content-categories" class="tab-content hidden">
+                <!-- Add Category Form -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-plus-circle mr-2 accent-text"></i>
+                        カテゴリ追加
+                    </h2>
+                    <form id="category-form" class="flex gap-3">
+                        <input type="text" id="category-name" required
+                            class="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                            placeholder="カテゴリ名を入力">
+                        <button type="submit" class="submit-btn text-white px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-plus mr-2"></i>追加
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Categories List -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-list mr-2 accent-text"></i>
+                        登録済みカテゴリ
+                    </h2>
+                    <div id="categories-list" class="space-y-3">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                            <p class="mt-2">読み込み中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <script>
+          let categories = [];
+          let prompts = [];
+          let editingCategoryId = null;
+
+          // Switch tabs
+          function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+              btn.classList.remove('active', 'accent-bg', 'text-white');
+              btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+            document.getElementById(\`tab-\${tab}\`).classList.add('active', 'accent-bg', 'text-white');
+            document.getElementById(\`tab-\${tab}\`).classList.remove('text-gray-600', 'hover:bg-gray-100');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+              content.classList.add('hidden');
+            });
+            document.getElementById(\`content-\${tab}\`).classList.remove('hidden');
+          }
+
+          // Load categories
+          async function loadCategories() {
+            try {
+              const response = await axios.get('/api/categories');
+              categories = response.data;
+              renderCategories();
+              updateCategorySelect();
+            } catch (error) {
+              console.error('Error loading categories:', error);
+            }
+          }
+
+          // Render categories
+          function renderCategories() {
+            const list = document.getElementById('categories-list');
+            
+            if (categories.length === 0) {
+              list.innerHTML = '<p class="text-gray-500 text-center py-8">カテゴリがありません</p>';
+              return;
+            }
+
+            list.innerHTML = categories.map(cat => \`
+              <div class="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg hover:border-accent-color transition">
+                <div class="flex items-center gap-3">
+                  <i class="fas fa-tag accent-text"></i>
+                  <span class="font-medium text-gray-800" id="cat-name-\${cat.id}">\${cat.name}</span>
+                  <input type="text" id="cat-edit-\${cat.id}" value="\${cat.name}" 
+                    class="hidden px-3 py-1 border-2 border-accent-color rounded">
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="editCategory(\${cat.id})" id="cat-edit-btn-\${cat.id}"
+                    class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded transition">
+                    <i class="fas fa-edit mr-1"></i>編集
+                  </button>
+                  <button onclick="saveCategory(\${cat.id})" id="cat-save-btn-\${cat.id}"
+                    class="hidden text-green-600 hover:bg-green-50 px-3 py-1 rounded transition">
+                    <i class="fas fa-save mr-1"></i>保存
+                  </button>
+                  <button onclick="cancelEditCategory(\${cat.id})" id="cat-cancel-btn-\${cat.id}"
+                    class="hidden text-gray-600 hover:bg-gray-50 px-3 py-1 rounded transition">
+                    キャンセル
+                  </button>
+                  <button onclick="deleteCategory(\${cat.id})" 
+                    class="delete-btn px-3 py-1 rounded border-2 border-accent-color transition">
+                    <i class="fas fa-trash mr-1"></i>削除
+                  </button>
+                </div>
+              </div>
+            \`).join('');
+          }
+
+          // Edit category
+          function editCategory(id) {
+            editingCategoryId = id;
+            document.getElementById(\`cat-name-\${id}\`).classList.add('hidden');
+            document.getElementById(\`cat-edit-\${id}\`).classList.remove('hidden');
+            document.getElementById(\`cat-edit-btn-\${id}\`).classList.add('hidden');
+            document.getElementById(\`cat-save-btn-\${id}\`).classList.remove('hidden');
+            document.getElementById(\`cat-cancel-btn-\${id}\`).classList.remove('hidden');
+          }
+
+          // Cancel edit category
+          function cancelEditCategory(id) {
+            editingCategoryId = null;
+            document.getElementById(\`cat-name-\${id}\`).classList.remove('hidden');
+            document.getElementById(\`cat-edit-\${id}\`).classList.add('hidden');
+            document.getElementById(\`cat-edit-btn-\${id}\`).classList.remove('hidden');
+            document.getElementById(\`cat-save-btn-\${id}\`).classList.add('hidden');
+            document.getElementById(\`cat-cancel-btn-\${id}\`).classList.add('hidden');
+          }
+
+          // Save category
+          async function saveCategory(id) {
+            const name = document.getElementById(\`cat-edit-\${id}\`).value.trim();
+            
+            if (!name) {
+              alert('カテゴリ名を入力してください');
+              return;
+            }
+
+            try {
+              await axios.put(\`/api/admin/categories/\${id}\`, { name });
+              await loadCategories();
+              editingCategoryId = null;
+              alert('カテゴリを更新しました');
+            } catch (error) {
+              alert('更新に失敗しました');
+            }
+          }
+
+          // Delete category
+          async function deleteCategory(id) {
+            if (!confirm('このカテゴリを削除してもよろしいですか?')) {
+              return;
+            }
+
+            try {
+              await axios.delete(\`/api/admin/categories/\${id}\`);
+              await loadCategories();
+              alert('カテゴリを削除しました');
+            } catch (error) {
+              alert('削除に失敗しました');
+            }
+          }
+
+          // Update category select
+          function updateCategorySelect() {
+            const select = document.getElementById('prompt-category');
+            select.innerHTML = '<option value="">選択してください</option>' + 
+              categories.map(cat => \`<option value="\${cat.id}">\${cat.name}</option>\`).join('');
+          }
+
+          // Load prompts
+          async function loadPrompts() {
+            try {
+              const response = await axios.get('/api/prompts');
+              prompts = response.data;
+              renderPrompts();
+            } catch (error) {
+              console.error('Error loading prompts:', error);
+            }
+          }
+
+          // Render prompts
+          function renderPrompts() {
+            const list = document.getElementById('prompts-list');
+            
+            if (prompts.length === 0) {
+              list.innerHTML = '<p class="text-gray-500 text-center py-8">プロンプトがありません</p>';
+              return;
+            }
+
+            list.innerHTML = prompts.map(prompt => \`
+              <div class="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-accent-color transition">
+                <img src="\${prompt.image_url}" alt="\${prompt.title}" 
+                  class="w-20 h-20 object-cover rounded"
+                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E'">
+                <div class="flex-1">
+                  <h3 class="font-bold text-gray-800">\${prompt.title}</h3>
+                  <p class="text-sm text-gray-600 line-clamp-1">\${prompt.prompt_text}</p>
+                  <span class="text-xs text-gray-500 mt-1 inline-block">
+                    <i class="fas fa-tag mr-1"></i>\${prompt.category_name}
+                  </span>
+                </div>
+                <div class="flex gap-2">
+                  <a href="/prompt/\${prompt.id}" target="_blank"
+                    class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded transition">
+                    <i class="fas fa-eye mr-1"></i>表示
+                  </a>
+                  <button onclick="deletePrompt(\${prompt.id})" 
+                    class="delete-btn px-3 py-1 rounded border-2 border-accent-color transition">
+                    <i class="fas fa-trash mr-1"></i>削除
+                  </button>
+                </div>
+              </div>
+            \`).join('');
+          }
+
+          // Delete prompt
+          async function deletePrompt(id) {
+            if (!confirm('このプロンプトを削除してもよろしいですか?')) {
+              return;
+            }
+
+            try {
+              await axios.delete(\`/api/admin/prompts/\${id}\`);
+              await loadPrompts();
+              alert('プロンプトを削除しました');
+            } catch (error) {
+              alert('削除に失敗しました');
+            }
+          }
+
+          // Submit category form
+          document.getElementById('category-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('category-name').value.trim();
+            
+            if (!name) {
+              alert('カテゴリ名を入力してください');
+              return;
+            }
+
+            try {
+              await axios.post('/api/admin/categories', { name });
+              await loadCategories();
+              document.getElementById('category-form').reset();
+              alert('カテゴリを追加しました');
+            } catch (error) {
+              alert('追加に失敗しました。カテゴリ名が重複している可能性があります。');
+            }
+          });
+
+          // Submit prompt form
+          document.getElementById('prompt-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('prompt-title').value.trim();
+            const categoryId = document.getElementById('prompt-category').value;
+            const promptText = document.getElementById('prompt-text').value.trim();
+            const thumbnail = document.getElementById('prompt-thumbnail').value.trim();
+            const imagesText = document.getElementById('prompt-images').value.trim();
+
+            if (!title || !categoryId || !promptText || !thumbnail) {
+              alert('すべての必須項目を入力してください');
+              return;
+            }
+
+            // Parse image URLs
+            const imageUrls = imagesText
+              .split('\\n')
+              .map(url => url.trim())
+              .filter(url => url.length > 0);
+
+            try {
+              await axios.post('/api/admin/prompts', {
+                title,
+                category_id: parseInt(categoryId),
+                prompt_text: promptText,
+                image_url: thumbnail,
+                image_urls: imageUrls
+              });
+
+              await loadPrompts();
+              document.getElementById('prompt-form').reset();
+              alert('プロンプトを追加しました');
+            } catch (error) {
+              alert('追加に失敗しました');
+              console.error(error);
+            }
+          });
+
+          // Initialize
+          loadCategories();
+          loadPrompts();
         </script>
     </body>
     </html>
