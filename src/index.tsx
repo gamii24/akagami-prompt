@@ -846,6 +846,60 @@ app.get('/prompt/:id', (c) => {
             }
           }
 
+          // Compress feedback image
+          async function compressFeedbackImage(file, maxWidth, maxHeight, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              
+              reader.onload = (e) => {
+                const img = new Image();
+                
+                img.onload = () => {
+                  let width = img.width;
+                  let height = img.height;
+                  
+                  if (width > maxWidth || height > maxHeight) {
+                    const widthRatio = maxWidth / width;
+                    const heightRatio = maxHeight / height;
+                    const ratio = Math.min(widthRatio, heightRatio);
+                    
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                  }
+                  
+                  const canvas = document.createElement('canvas');
+                  canvas.width = width;
+                  canvas.height = height;
+                  
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0, width, height);
+                  
+                  canvas.toBlob(
+                    (blob) => {
+                      if (blob) {
+                        const compressedFile = new File([blob], file.name, {
+                          type: 'image/jpeg',
+                          lastModified: Date.now()
+                        });
+                        resolve(compressedFile);
+                      } else {
+                        reject(new Error('Canvas to Blob conversion failed'));
+                      }
+                    },
+                    'image/jpeg',
+                    quality
+                  );
+                };
+                
+                img.onerror = () => reject(new Error('Image load failed'));
+                img.src = e.target.result;
+              };
+              
+              reader.onerror = () => reject(new Error('File read failed'));
+              reader.readAsDataURL(file);
+            });
+          }
+
           // Upload feedback image
           async function uploadFeedbackImage(file) {
             const formData = new FormData();
@@ -870,6 +924,10 @@ app.get('/prompt/:id', (c) => {
             if (!file) return;
 
             try {
+              // Show loading
+              const btn = e.target;
+              btn.disabled = true;
+              
               // Show preview
               const reader = new FileReader();
               reader.onload = (e) => {
@@ -878,12 +936,21 @@ app.get('/prompt/:id', (c) => {
               };
               reader.readAsDataURL(file);
 
+              // Compress image (max 1000x1000px)
+              const compressedFile = await compressFeedbackImage(file, 1000, 1000, 0.85);
+              
+              console.log(\`Feedback - Original: \${(file.size / 1024).toFixed(2)}KB → Compressed: \${(compressedFile.size / 1024).toFixed(2)}KB\`);
+
               // Upload
-              const url = await uploadFeedbackImage(file);
+              const url = await uploadFeedbackImage(compressedFile);
               document.getElementById('image-url').value = url;
               alert('画像をアップロードしました');
+              
+              btn.disabled = false;
             } catch (error) {
               alert('アップロードに失敗しました');
+              console.error(error);
+              e.target.disabled = false;
             }
           });
 
@@ -1425,6 +1492,64 @@ app.get('/admin', (c) => {
             document.getElementById('cancel-btn').classList.add('hidden');
           }
 
+          // Compress image before upload
+          async function compressImage(file, maxWidth, maxHeight, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              
+              reader.onload = (e) => {
+                const img = new Image();
+                
+                img.onload = () => {
+                  // Calculate new dimensions (maintain aspect ratio)
+                  let width = img.width;
+                  let height = img.height;
+                  
+                  if (width > maxWidth || height > maxHeight) {
+                    const widthRatio = maxWidth / width;
+                    const heightRatio = maxHeight / height;
+                    const ratio = Math.min(widthRatio, heightRatio);
+                    
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                  }
+                  
+                  // Create canvas and compress
+                  const canvas = document.createElement('canvas');
+                  canvas.width = width;
+                  canvas.height = height;
+                  
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0, width, height);
+                  
+                  // Convert to blob
+                  canvas.toBlob(
+                    (blob) => {
+                      if (blob) {
+                        // Create new file with original name
+                        const compressedFile = new File([blob], file.name, {
+                          type: 'image/jpeg',
+                          lastModified: Date.now()
+                        });
+                        resolve(compressedFile);
+                      } else {
+                        reject(new Error('Canvas to Blob conversion failed'));
+                      }
+                    },
+                    'image/jpeg',
+                    quality
+                  );
+                };
+                
+                img.onerror = () => reject(new Error('Image load failed'));
+                img.src = e.target.result;
+              };
+              
+              reader.onerror = () => reject(new Error('File read failed'));
+              reader.readAsDataURL(file);
+            });
+          }
+
           // Upload image
           async function uploadImage(file) {
             const formData = new FormData();
@@ -1449,6 +1574,10 @@ app.get('/admin', (c) => {
             if (!file) return;
 
             try {
+              // Show loading
+              const btn = e.target;
+              btn.disabled = true;
+              
               // Show preview
               const reader = new FileReader();
               reader.onload = (e) => {
@@ -1457,12 +1586,21 @@ app.get('/admin', (c) => {
               };
               reader.readAsDataURL(file);
 
+              // Compress image (max 800x1000px for 4:5 ratio)
+              const compressedFile = await compressImage(file, 800, 1000, 0.85);
+              
+              console.log(\`Original: \${(file.size / 1024).toFixed(2)}KB → Compressed: \${(compressedFile.size / 1024).toFixed(2)}KB\`);
+
               // Upload
-              const url = await uploadImage(file);
+              const url = await uploadImage(compressedFile);
               document.getElementById('prompt-thumbnail').value = url;
               alert('サムネイル画像をアップロードしました');
+              
+              btn.disabled = false;
             } catch (error) {
               alert('アップロードに失敗しました');
+              console.error(error);
+              e.target.disabled = false;
             }
           });
 
@@ -1473,6 +1611,10 @@ app.get('/admin', (c) => {
               if (!file) return;
 
               try {
+                // Show loading
+                const btn = e.target;
+                btn.disabled = true;
+                
                 // Show preview
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -1481,12 +1623,21 @@ app.get('/admin', (c) => {
                 };
                 reader.readAsDataURL(file);
 
+                // Compress image (max 1200x1500px for 4:5 ratio)
+                const compressedFile = await compressImage(file, 1200, 1500, 0.85);
+                
+                console.log(\`Detail \${i} - Original: \${(file.size / 1024).toFixed(2)}KB → Compressed: \${(compressedFile.size / 1024).toFixed(2)}KB\`);
+
                 // Upload
-                const url = await uploadImage(file);
+                const url = await uploadImage(compressedFile);
                 document.getElementById(\`detail-url-\${i}\`).value = url;
                 alert(\`画像\${i}をアップロードしました\`);
+                
+                btn.disabled = false;
               } catch (error) {
                 alert('アップロードに失敗しました');
+                console.error(error);
+                e.target.disabled = false;
               }
             });
           }
