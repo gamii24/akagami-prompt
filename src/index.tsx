@@ -761,8 +761,20 @@ app.get('/prompt/:id', (c) => {
 
             // Images grid
             const imagesGrid = document.getElementById('images-grid');
+            const allImages = [];
+            
+            // Add thumbnail as first image
+            if (promptData.image_url) {
+              allImages.push({ image_url: promptData.image_url });
+            }
+            
+            // Add additional images
             if (promptData.images && promptData.images.length > 0) {
-              imagesGrid.innerHTML = promptData.images.map(img => \`
+              allImages.push(...promptData.images);
+            }
+            
+            if (allImages.length > 0) {
+              imagesGrid.innerHTML = allImages.map(img => \`
                 <div class="image-item">
                   <img src="\${img.image_url}" alt="生成画像" 
                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
@@ -1037,21 +1049,21 @@ app.get('/admin', (c) => {
                                 <input type="url" id="prompt-thumbnail" required
                                     class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
                                     placeholder="画像をアップロード or URLを入力" readonly>
-                                <p class="text-xs text-gray-500">一覧ページに表示される画像 (アップロードすると自動的にURLが入ります)</p>
+                                <p class="text-xs text-gray-500">一覧ページと詳細ページの1枚目に表示される画像 (アップロードすると自動的にURLが入ります)</p>
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                詳細ページ画像 (最大5枚)
+                                詳細ページ追加画像 (最大4枚)
                             </label>
                             <div class="space-y-2">
                                 <input type="file" id="detail-files" accept="image/*" multiple
                                     class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none">
-                                <div id="detail-preview" class="hidden grid grid-cols-5 gap-2"></div>
-                                <textarea id="prompt-images" rows="5"
+                                <div id="detail-preview" class="hidden grid grid-cols-4 gap-2"></div>
+                                <textarea id="prompt-images" rows="4"
                                     class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none font-mono text-sm"
                                     placeholder="画像をアップロード or URLを入力 (1行に1URL)" readonly></textarea>
-                                <p class="text-xs text-gray-500">詳細ページに4:5比率で表示される画像(アップロードすると自動的にURLが入ります)</p>
+                                <p class="text-xs text-gray-500">詳細ページの2枚目以降に表示される画像 (サムネイルが自動的に1枚目になります)</p>
                             </div>
                         </div>
                         <button type="submit" class="submit-btn text-white px-8 py-3 rounded-lg font-medium w-full" id="submit-btn">
@@ -1412,8 +1424,8 @@ app.get('/admin', (c) => {
           document.getElementById('detail-files').addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
-            if (files.length > 5) {
-              alert('画像は最大5枚までです');
+            if (files.length > 4) {
+              alert('追加画像は最大4枚までです');
               return;
             }
 
