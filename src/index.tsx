@@ -239,7 +239,7 @@ app.get('/', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>プロンプト管理サイト</title>
+        <title>Akagami Prompt</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -331,7 +331,7 @@ app.get('/', (c) => {
             <div class="max-w-7xl mx-auto px-4">
                 <h1 class="text-3xl font-bold">
                     <i class="fas fa-sparkles mr-2"></i>
-                    プロンプト管理サイト
+                    Akagami Prompt
                 </h1>
             </div>
         </header>
@@ -477,7 +477,7 @@ app.get('/prompt/:id', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>プロンプト詳細</title>
+        <title>Akagami Prompt - プロンプト詳細</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -789,7 +789,7 @@ app.get('/admin', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>管理画面</title>
+        <title>Akagami Prompt - 管理画面</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -833,7 +833,7 @@ app.get('/admin', (c) => {
                 <div class="flex items-center justify-between">
                     <h1 class="text-3xl font-bold">
                         <i class="fas fa-tools mr-2"></i>
-                        管理画面
+                        Akagami Prompt - 管理画面
                     </h1>
                     <a href="/" class="text-white hover:opacity-80 transition">
                         <i class="fas fa-home mr-2"></i>
