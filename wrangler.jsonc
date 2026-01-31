@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "akagami-prompt",
+  "name": "webapp",
   "compatibility_date": "2026-01-31",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
@@ -9,15 +9,14 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "akagami-prompt-production",
-      "database_id": "9c0b7f52-3da0-4987-9f7d-747790424db5"
+      "database_name": "webapp-production",
+      "database_id": "local-development"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "webapp-images"
     }
   ]
-  // R2 is disabled - need to enable R2 in Cloudflare dashboard first
-  // "r2_buckets": [
-  //   {
-  //     "binding": "R2",
-  //     "bucket_name": "akagami-prompt-images"
-  //   }
-  // ]
 }
