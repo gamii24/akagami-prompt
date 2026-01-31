@@ -218,21 +218,24 @@ app.get('/', (c) => {
               return;
             }
 
-            grid.innerHTML = allPrompts.map(prompt => \`
+            grid.innerHTML = allPrompts.map(prompt => {
+              const escapedText = prompt.prompt_text.replace(/'/g, "\\\\'").replace(/"/g, '\\\\"');
+              return \`
               <div class="prompt-card">
                 <img src="\${prompt.image_url}" alt="\${prompt.title}" class="prompt-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22400%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22200%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                 <div class="prompt-overlay">
                   <h3 class="font-bold text-sm mb-2 line-clamp-2">\${prompt.title}</h3>
                   <div class="flex items-center justify-between gap-2">
                     <span class="text-xs bg-white/20 px-2 py-1 rounded">\${prompt.category_name}</span>
-                    <button onclick="copyPrompt('\${prompt.id}', \`\${prompt.prompt_text.replace(/`/g, '\\\\`')}\`)" class="copy-btn text-white px-3 py-1 rounded text-xs font-medium">
+                    <button onclick="copyPrompt(\${prompt.id}, '\${escapedText}')" class="copy-btn text-white px-3 py-1 rounded text-xs font-medium">
                       <i class="fas fa-copy mr-1"></i>コピー
                     </button>
                   </div>
                 </div>
                 <a href="/prompt/\${prompt.id}" class="absolute inset-0"></a>
               </div>
-            \`).join('');
+              \`;
+            }).join('');
           }
 
           // Copy prompt to clipboard
