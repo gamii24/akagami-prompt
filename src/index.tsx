@@ -259,6 +259,40 @@ app.get('/', (c) => {
             background-color: var(--accent-color);
             color: white;
           }
+          .category-scroll {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+            padding-bottom: 0.5rem;
+          }
+          .category-scroll::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+          }
+          .category-btn {
+            flex-shrink: 0;
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            color: #6b7280;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+          }
+          .category-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+          }
+          .category-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+          }
           .grid-container {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -337,12 +371,12 @@ app.get('/', (c) => {
         </header>
 
         <!-- Category Filter -->
-        <div class="max-w-7xl mx-auto px-4 py-6">
-            <div class="flex flex-wrap gap-3 mb-6">
-                <button onclick="filterCategory('')" class="px-4 py-2 rounded-full border-2 border-gray-300 hover-accent transition category-btn active">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="category-scroll">
+                <button onclick="filterCategory('')" class="category-btn active" data-category="">
                     すべて
                 </button>
-                <div id="category-buttons"></div>
+                <div id="category-buttons" style="display: contents;"></div>
             </div>
         </div>
 
@@ -370,8 +404,9 @@ app.get('/', (c) => {
               const container = document.getElementById('category-buttons');
               categories.forEach(cat => {
                 const btn = document.createElement('button');
-                btn.className = 'px-4 py-2 rounded-full border-2 border-gray-300 hover-accent transition category-btn';
+                btn.className = 'category-btn';
                 btn.textContent = cat.name;
+                btn.dataset.category = cat.name;
                 btn.onclick = () => filterCategory(cat.name);
                 container.appendChild(btn);
               });
@@ -450,11 +485,9 @@ app.get('/', (c) => {
           function filterCategory(category) {
             // Update active button
             document.querySelectorAll('.category-btn').forEach(btn => {
-              btn.classList.remove('active', 'accent-bg', 'text-white', 'border-transparent');
-              btn.classList.add('border-gray-300');
+              btn.classList.remove('active');
             });
-            event.currentTarget.classList.add('active', 'accent-bg', 'text-white', 'border-transparent');
-            event.currentTarget.classList.remove('border-gray-300');
+            event.currentTarget.classList.add('active');
             
             loadPrompts(category);
           }
