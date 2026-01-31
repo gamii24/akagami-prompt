@@ -42,6 +42,35 @@ app.get('/api/categories', async (c) => {
   return c.json(result.results)
 })
 
+app.get('/api/admin/prompts/:id', async (c) => {
+  const { DB } = c.env
+  const id = c.req.param('id')
+  
+  // Get prompt details
+  const prompt = await DB.prepare(`
+    SELECT p.*, c.name as category_name 
+    FROM prompts p 
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.id = ?
+  `).bind(id).first()
+  
+  if (!prompt) {
+    return c.json({ error: 'Prompt not found' }, 404)
+  }
+  
+  // Get prompt images
+  const images = await DB.prepare(`
+    SELECT * FROM prompt_images 
+    WHERE prompt_id = ? 
+    ORDER BY display_order
+  `).bind(id).all()
+  
+  return c.json({
+    ...prompt,
+    images: images.results
+  })
+})
+
 app.get('/api/prompts/:id', async (c) => {
   const { DB } = c.env
   const id = c.req.param('id')
@@ -168,6 +197,38 @@ app.post('/api/admin/prompts', async (c) => {
   }
   
   return c.json({ success: true, id: promptId })
+})
+
+app.put('/api/admin/prompts/:id', async (c) => {
+  const { DB } = c.env
+  const id = c.req.param('id')
+  const { title, prompt_text, category_id, image_url, image_urls } = await c.req.json()
+  
+  if (!title || !prompt_text || !category_id || !image_url) {
+    return c.json({ error: 'title, prompt_text, category_id, and image_url are required' }, 400)
+  }
+  
+  // Update prompt
+  await DB.prepare(`
+    UPDATE prompts 
+    SET title = ?, prompt_text = ?, image_url = ?, category_id = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).bind(title, prompt_text, image_url, category_id, id).run()
+  
+  // Delete old images
+  await DB.prepare(`DELETE FROM prompt_images WHERE prompt_id = ?`).bind(id).run()
+  
+  // Insert new images if provided
+  if (image_urls && Array.isArray(image_urls) && image_urls.length > 0) {
+    for (let i = 0; i < image_urls.length; i++) {
+      await DB.prepare(`
+        INSERT INTO prompt_images (prompt_id, image_url, display_order)
+        VALUES (?, ?, ?)
+      `).bind(id, image_urls[i], i).run()
+    }
+  }
+  
+  return c.json({ success: true })
 })
 
 app.delete('/api/admin/prompts/:id', async (c) => {
@@ -940,11 +1001,12 @@ app.get('/admin', (c) => {
             <div id="content-prompts" class="tab-content">
                 <!-- Add Prompt Form -->
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4" id="form-title">
                         <i class="fas fa-plus-circle mr-2 accent-text"></i>
-                        プロンプト追加
+                        <span id="form-title-text">プロンプト追加</span>
                     </h2>
                     <form id="prompt-form" class="space-y-4">
+                        <input type="hidden" id="prompt-id" value="">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">タイトル</label>
                             <input type="text" id="prompt-title" required
@@ -992,8 +1054,11 @@ app.get('/admin', (c) => {
                                 <p class="text-xs text-gray-500">詳細ページに4:5比率で表示される画像(アップロードすると自動的にURLが入ります)</p>
                             </div>
                         </div>
-                        <button type="submit" class="submit-btn text-white px-8 py-3 rounded-lg font-medium w-full">
-                            <i class="fas fa-save mr-2"></i>プロンプトを追加
+                        <button type="submit" class="submit-btn text-white px-8 py-3 rounded-lg font-medium w-full" id="submit-btn">
+                            <i class="fas fa-save mr-2"></i><span id="submit-btn-text">プロンプトを追加</span>
+                        </button>
+                        <button type="button" onclick="cancelEdit()" class="hidden w-full px-8 py-3 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-50" id="cancel-btn">
+                            <i class="fas fa-times mr-2"></i>キャンセル
                         </button>
                     </form>
                 </div>
@@ -1219,6 +1284,10 @@ app.get('/admin', (c) => {
                     class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded transition">
                     <i class="fas fa-eye mr-1"></i>表示
                   </a>
+                  <button onclick="editPrompt(\${prompt.id})" 
+                    class="text-green-600 hover:bg-green-50 px-3 py-1 rounded transition">
+                    <i class="fas fa-edit mr-1"></i>編集
+                  </button>
                   <button onclick="deletePrompt(\${prompt.id})" 
                     class="delete-btn px-3 py-1 rounded border-2 border-accent-color transition">
                     <i class="fas fa-trash mr-1"></i>削除
@@ -1241,6 +1310,61 @@ app.get('/admin', (c) => {
             } catch (error) {
               alert('削除に失敗しました');
             }
+          }
+
+          // Edit prompt
+          async function editPrompt(id) {
+            try {
+              const response = await axios.get(\`/api/admin/prompts/\${id}\`);
+              const prompt = response.data;
+
+              // Fill form
+              document.getElementById('prompt-id').value = prompt.id;
+              document.getElementById('prompt-title').value = prompt.title;
+              document.getElementById('prompt-category').value = prompt.category_id;
+              document.getElementById('prompt-text').value = prompt.prompt_text;
+              document.getElementById('prompt-thumbnail').value = prompt.image_url;
+
+              // Show thumbnail preview
+              if (prompt.image_url) {
+                document.getElementById('thumbnail-preview-img').src = prompt.image_url;
+                document.getElementById('thumbnail-preview').classList.remove('hidden');
+              }
+
+              // Fill image URLs
+              if (prompt.images && prompt.images.length > 0) {
+                const urls = prompt.images.map(img => img.image_url).join('\\n');
+                document.getElementById('prompt-images').value = urls;
+
+                // Show preview
+                const previewContainer = document.getElementById('detail-preview');
+                previewContainer.innerHTML = prompt.images.map(img => \`
+                  <img src="\${img.image_url}" class="w-full h-24 object-cover rounded-lg border-2 border-gray-200">
+                \`).join('');
+                previewContainer.classList.remove('hidden');
+              }
+
+              // Update form UI
+              document.getElementById('form-title-text').textContent = 'プロンプト編集';
+              document.getElementById('submit-btn-text').textContent = '更新する';
+              document.getElementById('cancel-btn').classList.remove('hidden');
+
+              // Scroll to form
+              document.getElementById('form-title').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+              alert('プロンプトの読み込みに失敗しました');
+            }
+          }
+
+          // Cancel edit
+          function cancelEdit() {
+            document.getElementById('prompt-form').reset();
+            document.getElementById('prompt-id').value = '';
+            document.getElementById('thumbnail-preview').classList.add('hidden');
+            document.getElementById('detail-preview').classList.add('hidden');
+            document.getElementById('form-title-text').textContent = 'プロンプト追加';
+            document.getElementById('submit-btn-text').textContent = 'プロンプトを追加';
+            document.getElementById('cancel-btn').classList.add('hidden');
           }
 
           // Upload image
@@ -1348,6 +1472,7 @@ app.get('/admin', (c) => {
           document.getElementById('prompt-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const promptId = document.getElementById('prompt-id').value;
             const title = document.getElementById('prompt-title').value.trim();
             const categoryId = document.getElementById('prompt-category').value;
             const promptText = document.getElementById('prompt-text').value.trim();
@@ -1366,19 +1491,32 @@ app.get('/admin', (c) => {
               .filter(url => url.length > 0);
 
             try {
-              await axios.post('/api/admin/prompts', {
-                title,
-                category_id: parseInt(categoryId),
-                prompt_text: promptText,
-                image_url: thumbnail,
-                image_urls: imageUrls
-              });
+              if (promptId) {
+                // Update existing prompt
+                await axios.put(\`/api/admin/prompts/\${promptId}\`, {
+                  title,
+                  category_id: parseInt(categoryId),
+                  prompt_text: promptText,
+                  image_url: thumbnail,
+                  image_urls: imageUrls
+                });
+                alert('プロンプトを更新しました');
+              } else {
+                // Create new prompt
+                await axios.post('/api/admin/prompts', {
+                  title,
+                  category_id: parseInt(categoryId),
+                  prompt_text: promptText,
+                  image_url: thumbnail,
+                  image_urls: imageUrls
+                });
+                alert('プロンプトを追加しました');
+              }
 
               await loadPrompts();
-              document.getElementById('prompt-form').reset();
-              alert('プロンプトを追加しました');
+              cancelEdit();
             } catch (error) {
-              alert('追加に失敗しました');
+              alert(promptId ? '更新に失敗しました' : '追加に失敗しました');
               console.error(error);
             }
           });
