@@ -42,6 +42,59 @@ app.get('/api/categories', async (c) => {
   return c.json(result.results)
 })
 
+app.get('/api/prompts/:id', async (c) => {
+  const { DB } = c.env
+  const id = c.req.param('id')
+  
+  // Get prompt details
+  const prompt = await DB.prepare(`
+    SELECT p.*, c.name as category_name 
+    FROM prompts p 
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.id = ?
+  `).bind(id).first()
+  
+  if (!prompt) {
+    return c.json({ error: 'Prompt not found' }, 404)
+  }
+  
+  // Get prompt images
+  const images = await DB.prepare(`
+    SELECT * FROM prompt_images 
+    WHERE prompt_id = ? 
+    ORDER BY display_order
+  `).bind(id).all()
+  
+  // Get feedbacks
+  const feedbacks = await DB.prepare(`
+    SELECT * FROM feedbacks 
+    WHERE prompt_id = ? 
+    ORDER BY created_at DESC
+  `).bind(id).all()
+  
+  return c.json({
+    ...prompt,
+    images: images.results,
+    feedbacks: feedbacks.results
+  })
+})
+
+app.post('/api/feedbacks', async (c) => {
+  const { DB } = c.env
+  const { prompt_id, author_name, comment, image_url } = await c.req.json()
+  
+  if (!prompt_id || !author_name) {
+    return c.json({ error: 'prompt_id and author_name are required' }, 400)
+  }
+  
+  const result = await DB.prepare(`
+    INSERT INTO feedbacks (prompt_id, author_name, comment, image_url)
+    VALUES (?, ?, ?, ?)
+  `).bind(prompt_id, author_name, comment || null, image_url || null).run()
+  
+  return c.json({ success: true, id: result.meta.last_row_id })
+})
+
 // Home page
 app.get('/', (c) => {
   return c.html(`
@@ -271,6 +324,319 @@ app.get('/', (c) => {
           // Initialize
           loadCategories();
           loadPrompts();
+        </script>
+    </body>
+    </html>
+  `)
+})
+
+// Prompt detail page
+app.get('/prompt/:id', (c) => {
+  const id = c.req.param('id')
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>プロンプト詳細</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <style>
+          :root {
+            --accent-color: #E75556;
+          }
+          .accent-bg {
+            background-color: var(--accent-color);
+          }
+          .accent-text {
+            color: var(--accent-color);
+          }
+          .accent-border {
+            border-color: var(--accent-color);
+          }
+          .image-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+          }
+          @media (max-width: 1280px) {
+            .image-grid {
+              grid-template-columns: repeat(4, 1fr);
+            }
+          }
+          @media (max-width: 1024px) {
+            .image-grid {
+              grid-template-columns: repeat(3, 1fr);
+            }
+          }
+          @media (max-width: 768px) {
+            .image-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          .image-item {
+            aspect-ratio: 4/5;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          }
+          .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          .copy-btn {
+            background-color: var(--accent-color);
+            transition: all 0.2s;
+          }
+          .copy-btn:hover {
+            background-color: #d04445;
+          }
+          .submit-btn {
+            background-color: var(--accent-color);
+            transition: all 0.2s;
+          }
+          .submit-btn:hover {
+            background-color: #d04445;
+          }
+        </style>
+    </head>
+    <body class="bg-white">
+        <!-- Header -->
+        <header class="accent-bg text-white py-4 shadow-md">
+            <div class="max-w-6xl mx-auto px-4">
+                <a href="/" class="inline-flex items-center text-white hover:opacity-80 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    戻る
+                </a>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto px-4 py-8">
+            <!-- Loading -->
+            <div id="loading" class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl accent-text"></i>
+                <p class="mt-4 text-gray-600">読み込み中...</p>
+            </div>
+
+            <!-- Content -->
+            <div id="content" class="hidden">
+                <!-- Title -->
+                <h1 id="prompt-title" class="text-3xl font-bold text-gray-800 mb-6"></h1>
+
+                <!-- Images Grid (4:5 ratio) -->
+                <div id="images-grid" class="image-grid mb-8"></div>
+
+                <!-- Prompt Section -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-8 shadow-sm">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex-1">
+                            <h2 class="text-lg font-bold text-gray-800 mb-3">プロンプト</h2>
+                            <p id="prompt-text" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
+                        </div>
+                        <button onclick="copyPromptText()" class="copy-btn text-white px-6 py-3 rounded-lg font-medium flex-shrink-0">
+                            <i class="fas fa-copy mr-2"></i>コピー
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feedback Form -->
+                <div class="bg-white border-2 border-gray-200 rounded-lg p-6 mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-comment-dots mr-2 accent-text"></i>
+                        感想を投稿する
+                    </h2>
+                    <form id="feedback-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                お名前 <span class="accent-text">*</span>
+                            </label>
+                            <input type="text" id="author-name" required
+                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                                placeholder="名前を入力してください">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                コメント <span class="text-gray-400 text-xs">(任意)</span>
+                            </label>
+                            <textarea id="comment" rows="4"
+                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                                placeholder="このプロンプトを使ってみた感想を教えてください"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                画像URL <span class="text-gray-400 text-xs">(任意)</span>
+                            </label>
+                            <input type="url" id="image-url"
+                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                                placeholder="https://example.com/image.jpg">
+                            <p class="text-xs text-gray-500 mt-1">生成した画像のURLを貼り付けてください</p>
+                        </div>
+                        <button type="submit" class="submit-btn text-white px-8 py-3 rounded-lg font-medium w-full">
+                            <i class="fas fa-paper-plane mr-2"></i>投稿する
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Feedbacks List -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-comments mr-2 accent-text"></i>
+                        感想一覧 (<span id="feedback-count">0</span>件)
+                    </h2>
+                    <div id="feedbacks-list" class="space-y-4"></div>
+                </div>
+            </div>
+        </main>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <script>
+          const promptId = ${id};
+          let promptData = null;
+
+          // Load prompt details
+          async function loadPrompt() {
+            try {
+              const response = await axios.get(\`/api/prompts/\${promptId}\`);
+              promptData = response.data;
+              renderPrompt();
+              document.getElementById('loading').classList.add('hidden');
+              document.getElementById('content').classList.remove('hidden');
+            } catch (error) {
+              console.error('Error loading prompt:', error);
+              document.getElementById('loading').innerHTML = \`
+                <i class="fas fa-exclamation-circle text-4xl accent-text"></i>
+                <p class="mt-4 text-gray-600">プロンプトの読み込みに失敗しました</p>
+                <a href="/" class="mt-4 inline-block accent-text hover:underline">
+                  <i class="fas fa-arrow-left mr-1"></i>トップページに戻る
+                </a>
+              \`;
+            }
+          }
+
+          // Render prompt details
+          function renderPrompt() {
+            // Title
+            document.getElementById('prompt-title').textContent = promptData.title;
+
+            // Images grid
+            const imagesGrid = document.getElementById('images-grid');
+            if (promptData.images && promptData.images.length > 0) {
+              imagesGrid.innerHTML = promptData.images.map(img => \`
+                <div class="image-item">
+                  <img src="\${img.image_url}" alt="生成画像" 
+                    onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                </div>
+              \`).join('');
+            } else {
+              imagesGrid.innerHTML = '<p class="text-gray-500 col-span-full">画像がありません</p>';
+            }
+
+            // Prompt text
+            document.getElementById('prompt-text').textContent = promptData.prompt_text;
+
+            // Feedbacks
+            renderFeedbacks();
+          }
+
+          // Render feedbacks
+          function renderFeedbacks() {
+            const feedbacksList = document.getElementById('feedbacks-list');
+            const feedbacks = promptData.feedbacks || [];
+            
+            document.getElementById('feedback-count').textContent = feedbacks.length;
+
+            if (feedbacks.length === 0) {
+              feedbacksList.innerHTML = \`
+                <div class="text-center py-8 text-gray-500">
+                  <i class="fas fa-inbox text-3xl mb-2"></i>
+                  <p>まだ感想が投稿されていません</p>
+                </div>
+              \`;
+              return;
+            }
+
+            feedbacksList.innerHTML = feedbacks.map(feedback => \`
+              <div class="bg-gray-50 rounded-lg p-4 shadow-sm">
+                <div class="flex items-start gap-4">
+                  \${feedback.image_url ? \`
+                    <img src="\${feedback.image_url}" alt="フィードバック画像" 
+                      class="w-32 h-32 object-cover rounded-lg flex-shrink-0"
+                      onerror="this.style.display='none'">
+                  \` : ''}
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                      <i class="fas fa-user-circle text-gray-400"></i>
+                      <span class="font-medium text-gray-800">\${feedback.author_name}</span>
+                      <span class="text-xs text-gray-500">\${new Date(feedback.created_at).toLocaleString('ja-JP')}</span>
+                    </div>
+                    \${feedback.comment ? \`
+                      <p class="text-gray-700 whitespace-pre-wrap">\${feedback.comment}</p>
+                    \` : ''}
+                  </div>
+                </div>
+              </div>
+            \`).join('');
+          }
+
+          // Copy prompt text
+          async function copyPromptText() {
+            try {
+              await navigator.clipboard.writeText(promptData.prompt_text);
+              const btn = event.currentTarget;
+              const originalHTML = btn.innerHTML;
+              btn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
+              setTimeout(() => {
+                btn.innerHTML = originalHTML;
+              }, 2000);
+            } catch (error) {
+              alert('コピーに失敗しました');
+            }
+          }
+
+          // Submit feedback
+          document.getElementById('feedback-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const authorName = document.getElementById('author-name').value.trim();
+            const comment = document.getElementById('comment').value.trim();
+            const imageUrl = document.getElementById('image-url').value.trim();
+
+            if (!authorName) {
+              alert('お名前を入力してください');
+              return;
+            }
+
+            try {
+              const response = await axios.post('/api/feedbacks', {
+                prompt_id: promptId,
+                author_name: authorName,
+                comment: comment || null,
+                image_url: imageUrl || null
+              });
+
+              if (response.data.success) {
+                // Reload prompt data
+                await loadPrompt();
+                
+                // Reset form
+                document.getElementById('feedback-form').reset();
+                
+                // Show success message
+                alert('感想を投稿しました!');
+                
+                // Scroll to feedbacks
+                document.getElementById('feedbacks-list').scrollIntoView({ behavior: 'smooth' });
+              }
+            } catch (error) {
+              console.error('Error submitting feedback:', error);
+              alert('投稿に失敗しました。もう一度お試しください。');
+            }
+          });
+
+          // Initialize
+          loadPrompt();
         </script>
     </body>
     </html>
