@@ -667,7 +667,7 @@ app.get('/prompt/:id', (c) => {
                             <h2 class="text-lg font-bold text-gray-800 mb-3">プロンプト</h2>
                             <p id="prompt-text" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
                         </div>
-                        <button onclick="copyPromptText()" class="copy-btn text-white px-6 py-3 rounded-lg font-medium flex-shrink-0">
+                        <button onclick="copyPromptText(event)" class="copy-btn text-white px-6 py-3 rounded-lg font-medium flex-shrink-0">
                             <i class="fas fa-copy mr-2"></i>コピー
                         </button>
                     </div>
@@ -832,7 +832,7 @@ app.get('/prompt/:id', (c) => {
           }
 
           // Copy prompt text
-          async function copyPromptText() {
+          async function copyPromptText(event) {
             try {
               await navigator.clipboard.writeText(promptData.prompt_text);
               const btn = event.currentTarget;
@@ -842,6 +842,7 @@ app.get('/prompt/:id', (c) => {
                 btn.innerHTML = originalHTML;
               }, 2000);
             } catch (error) {
+              console.error('Copy error:', error);
               alert('コピーに失敗しました');
             }
           }
