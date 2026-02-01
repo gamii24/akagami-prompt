@@ -561,6 +561,28 @@ app.get('/', (c) => {
                 <div id="category-buttons" style="display: contents;"></div>
             </div>
         </div>
+        
+        <!-- Search Bar -->
+        <div class="max-w-7xl mx-auto px-4 pb-4">
+            <div class="relative">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="プロンプトを検索（タイトル・プロンプトテキスト）" 
+                    class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none transition"
+                    oninput="searchPrompts()"
+                />
+                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <button 
+                    id="clear-search" 
+                    onclick="clearSearch()" 
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition hidden"
+                >
+                    <i class="fas fa-times-circle text-xl"></i>
+                </button>
+            </div>
+            <div id="search-results-count" class="mt-2 text-sm text-gray-600 hidden"></div>
+        </div>
 
         <!-- Prompts Grid -->
         <main class="max-w-7xl mx-auto px-4 pb-12">
@@ -643,20 +665,21 @@ app.get('/', (c) => {
           }
 
           // Render prompts
-          function renderPrompts() {
+          function renderPrompts(promptsToRender = null) {
             const grid = document.getElementById('prompts-grid');
+            const prompts = promptsToRender || allPrompts;
             
-            if (allPrompts.length === 0) {
+            if (prompts.length === 0) {
               grid.innerHTML = \`
                 <div class="col-span-full text-center py-12">
                   <i class="fas fa-inbox text-4xl text-gray-400"></i>
-                  <p class="mt-4 text-gray-600">プロンプトがまだありません</p>
+                  <p class="mt-4 text-gray-600">プロンプトが見つかりません</p>
                 </div>
               \`;
               return;
             }
 
-            grid.innerHTML = allPrompts.map(prompt => {
+            grid.innerHTML = prompts.map(prompt => {
               return \`
               <div class="prompt-card">
                 <div class="prompt-image-wrapper" onclick="location.href='/prompt/\${prompt.id}'">
@@ -724,6 +747,72 @@ app.get('/', (c) => {
             }
           });
 
+          // Search prompts
+          let searchTimeout;
+          let currentCategory = '';
+          
+          function searchPrompts() {
+            clearTimeout(searchTimeout);
+            const searchInput = document.getElementById('search-input');
+            const clearBtn = document.getElementById('clear-search');
+            const resultsCount = document.getElementById('search-results-count');
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            
+            // Show/hide clear button
+            if (searchTerm) {
+              clearBtn.classList.remove('hidden');
+            } else {
+              clearBtn.classList.add('hidden');
+              resultsCount.classList.add('hidden');
+            }
+            
+            // Debounce search
+            searchTimeout = setTimeout(() => {
+              if (searchTerm) {
+                // Filter allPrompts by search term
+                const filtered = allPrompts.filter(prompt => {
+                  return prompt.title.toLowerCase().includes(searchTerm) ||
+                         prompt.prompt_text.toLowerCase().includes(searchTerm);
+                });
+                
+                // Show results count
+                resultsCount.textContent = \`\${filtered.length}件のプロンプトが見つかりました\`;
+                resultsCount.classList.remove('hidden');
+                
+                // Render filtered results
+                renderPrompts(filtered);
+                
+                // Google Analytics event tracking
+                if (typeof gtag !== 'undefined') {
+                  gtag('event', 'search_prompts', {
+                    event_category: 'engagement',
+                    event_label: searchTerm,
+                    value: filtered.length
+                  });
+                }
+              } else {
+                // Reset to current category filter
+                loadPrompts(currentCategory);
+              }
+            }, 300);
+          }
+          
+          function clearSearch() {
+            const searchInput = document.getElementById('search-input');
+            const clearBtn = document.getElementById('clear-search');
+            const resultsCount = document.getElementById('search-results-count');
+            
+            searchInput.value = '';
+            clearBtn.classList.add('hidden');
+            resultsCount.classList.add('hidden');
+            
+            // Reset to current category filter
+            loadPrompts(currentCategory);
+            
+            // Focus back to input
+            searchInput.focus();
+          }
+          
           // Filter by category
           function filterCategory(category) {
             // Update active button
@@ -731,6 +820,17 @@ app.get('/', (c) => {
               btn.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
+            
+            // Store current category
+            currentCategory = category;
+            
+            // Clear search when changing category
+            const searchInput = document.getElementById('search-input');
+            const clearBtn = document.getElementById('clear-search');
+            const resultsCount = document.getElementById('search-results-count');
+            searchInput.value = '';
+            clearBtn.classList.add('hidden');
+            resultsCount.classList.add('hidden');
             
             // Google Analytics event tracking
             if (typeof gtag !== 'undefined') {
