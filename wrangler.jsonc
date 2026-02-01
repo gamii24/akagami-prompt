@@ -12,5 +12,11 @@
       "database_name": "akagami-prompt-production",
       "database_id": "9c0b7f52-3da0-4987-9f7d-747790424db5"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "akagami-prompt-images"
+    }
   ]
 }
