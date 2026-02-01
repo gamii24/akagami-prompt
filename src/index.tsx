@@ -377,6 +377,18 @@ app.get('/', (c) => {
         <meta name="twitter:description" content="ビジネスシーンで使える画像生成プロンプトを共有。働く女性の日常をサポートするAI画像生成プロンプトが満載。">
         <meta name="twitter:image" content="https://akagami-prompt.pages.dev/ogp-image.png">
         
+        <!-- Google Analytics 4 -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-XXXXXXXXXX', {
+            page_title: 'Akagami Prompt - トップページ',
+            page_location: window.location.href
+          });
+        </script>
+        
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -637,6 +649,15 @@ app.get('/', (c) => {
                   document.body.removeChild(textArea);
                 }
                 
+                // Google Analytics event tracking
+                if (typeof gtag !== 'undefined') {
+                  gtag('event', 'copy_prompt', {
+                    event_category: 'engagement',
+                    event_label: prompt.title,
+                    value: promptId
+                  });
+                }
+                
                 const originalHTML = copyBtn.innerHTML;
                 copyBtn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
                 setTimeout(() => {
@@ -656,6 +677,14 @@ app.get('/', (c) => {
               btn.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
+            
+            // Google Analytics event tracking
+            if (typeof gtag !== 'undefined') {
+              gtag('event', 'filter_category', {
+                event_category: 'navigation',
+                event_label: category || 'すべて'
+              });
+            }
             
             loadPrompts(category);
           }
@@ -719,6 +748,18 @@ app.get('/prompt/:id', async (c) => {
         <meta name="twitter:title" content="${ogTitle}">
         <meta name="twitter:description" content="${ogDescription}">
         <meta name="twitter:image" content="${ogImage}">
+        
+        <!-- Google Analytics 4 -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-XXXXXXXXXX', {
+            page_title: '${ogTitle}',
+            page_location: window.location.href
+          });
+        </script>
         
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
@@ -1256,6 +1297,15 @@ app.get('/prompt/:id', async (c) => {
                 document.getElementById('feedback-form').reset();
                 document.getElementById('feedback-image-preview').classList.add('hidden');
                 
+                // Google Analytics event tracking
+                if (typeof gtag !== 'undefined') {
+                  gtag('event', 'submit_feedback', {
+                    event_category: 'engagement',
+                    event_label: promptData.title,
+                    value: promptData.id
+                  });
+                }
+                
                 // Show success message
                 alert('感想を投稿しました!');
                 
@@ -1298,6 +1348,15 @@ app.get('/prompt/:id', async (c) => {
                   document.body.removeChild(textArea);
                 }
                 
+                // Google Analytics event tracking
+                if (typeof gtag !== 'undefined') {
+                  gtag('event', 'copy_prompt_detail', {
+                    event_category: 'engagement',
+                    event_label: promptData.title,
+                    value: promptData.id
+                  });
+                }
+                
                 // Update button UI
                 const originalHTML = copyBtn.innerHTML;
                 copyBtn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
@@ -1317,6 +1376,15 @@ app.get('/prompt/:id', async (c) => {
             updateLightbox();
             document.getElementById('lightbox').classList.add('active');
             document.body.style.overflow = 'hidden';
+            
+            // Google Analytics event tracking
+            if (typeof gtag !== 'undefined') {
+              gtag('event', 'open_lightbox', {
+                event_category: 'engagement',
+                event_label: promptData.title,
+                value: index
+              });
+            }
           }
 
           function closeLightbox() {
@@ -1381,6 +1449,19 @@ app.get('/admin', (c) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Akagami Prompt - 管理画面</title>
         <link rel="icon" type="image/svg+xml" href="/admin-favicon.svg">
+        
+        <!-- Google Analytics 4 -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-XXXXXXXXXX', {
+            page_title: 'Akagami Prompt - 管理画面',
+            page_location: window.location.href
+          });
+        </script>
+        
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
