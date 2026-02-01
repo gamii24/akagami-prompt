@@ -38,6 +38,40 @@ app.get('/admin-favicon.svg', (c) => {
   });
 })
 
+// Serve OGP image
+app.get('/ogp-image.png', (c) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF5F5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FEE2E2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  <circle cx="100" cy="100" r="60" fill="#E75556" opacity="0.1"/>
+  <circle cx="1100" cy="530" r="80" fill="#E75556" opacity="0.1"/>
+  <g transform="translate(100, 200)">
+    <rect x="0" y="0" width="80" height="80" fill="#E75556" rx="16"/>
+    <text x="40" y="62" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle">A</text>
+    <text x="110" y="40" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="#1F2937">Akagami Prompt</text>
+    <text x="110" y="75" font-family="Arial, sans-serif" font-size="28" fill="#6B7280">働く女性を助ける画像生成</text>
+  </g>
+  <text x="100" y="380" font-family="Arial, sans-serif" font-size="24" fill="#374151">ビジネスシーンで使える画像生成プロンプトを共有</text>
+  <text x="100" y="420" font-family="Arial, sans-serif" font-size="22" fill="#6B7280">プロフェッショナルなビジネスポートレート、プレゼン資料、</text>
+  <text x="100" y="455" font-family="Arial, sans-serif" font-size="22" fill="#6B7280">アイコン写真など、AI画像生成プロンプトが満載</text>
+  <text x="100" y="550" font-family="Arial, sans-serif" font-size="20" fill="#E75556" font-weight="bold">akagami-prompt.pages.dev</text>
+</svg>`;
+  return c.body(svg, 200, {
+    'Content-Type': 'image/svg+xml',
+    'Cache-Control': 'public, max-age=31536000'
+  });
+})
+  return c.body(svg, 200, {
+    'Content-Type': 'image/svg+xml',
+    'Cache-Control': 'public, max-age=31536000'
+  });
+})
+
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
 
@@ -326,8 +360,28 @@ app.get('/', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Akagami Prompt</title>
+        <title>Akagami Prompt - 働く女性を助ける画像生成プロンプト集</title>
+        <meta name="description" content="ビジネスシーンで使える画像生成プロンプトを共有。プロフェッショナルなビジネスポートレート、プレゼン資料、アイコン写真など、働く女性の日常をサポートするAI画像生成プロンプトが満載。">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        
+        <!-- Open Graph / Facebook / Threads -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://akagami-prompt.pages.dev/">
+        <meta property="og:title" content="Akagami Prompt - 働く女性を助ける画像生成プロンプト集">
+        <meta property="og:description" content="ビジネスシーンで使える画像生成プロンプトを共有。プロフェッショナルなビジネスポートレート、プレゼン資料、アイコン写真など、働く女性の日常をサポート。">
+        <meta property="og:image" content="https://akagami-prompt.pages.dev/ogp-image.png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:locale" content="ja_JP">
+        <meta property="og:site_name" content="Akagami Prompt">
+        
+        <!-- Twitter / Threads optimized -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="https://akagami-prompt.pages.dev/">
+        <meta name="twitter:title" content="Akagami Prompt - 働く女性を助ける画像生成プロンプト集">
+        <meta name="twitter:description" content="ビジネスシーンで使える画像生成プロンプトを共有。働く女性の日常をサポートするAI画像生成プロンプトが満載。">
+        <meta name="twitter:image" content="https://akagami-prompt.pages.dev/ogp-image.png">
+        
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -621,16 +675,52 @@ app.get('/', (c) => {
 })
 
 // Prompt detail page
-app.get('/prompt/:id', (c) => {
+app.get('/prompt/:id', async (c) => {
+  const { DB } = c.env
   const id = c.req.param('id')
+  
+  // プロンプトデータを取得してOGPに使用
+  const prompt = await DB.prepare(`
+    SELECT p.*, c.name as category_name
+    FROM prompts p
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.id = ?
+  `).bind(id).first()
+  
+  // OGP用のデータ準備
+  const ogTitle = prompt ? `${prompt.title} | Akagami Prompt` : 'Akagami Prompt - プロンプト詳細'
+  const ogDescription = prompt ? `${prompt.prompt_text.substring(0, 100)}...` : 'ビジネスシーンで使える画像生成プロンプト'
+  const ogImage = prompt?.image_url ? `https://akagami-prompt.pages.dev${prompt.image_url}` : 'https://akagami-prompt.pages.dev/ogp-image.png'
+  const ogUrl = `https://akagami-prompt.pages.dev/prompt/${id}`
+  
   return c.html(`
     <!DOCTYPE html>
     <html lang="ja">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Akagami Prompt - プロンプト詳細</title>
+        <title>${ogTitle}</title>
+        <meta name="description" content="${ogDescription}">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        
+        <!-- Open Graph / Facebook / Threads -->
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="${ogUrl}">
+        <meta property="og:title" content="${ogTitle}">
+        <meta property="og:description" content="${ogDescription}">
+        <meta property="og:image" content="${ogImage}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:locale" content="ja_JP">
+        <meta property="og:site_name" content="Akagami Prompt">
+        
+        <!-- Twitter / Threads optimized -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="${ogUrl}">
+        <meta name="twitter:title" content="${ogTitle}">
+        <meta name="twitter:description" content="${ogDescription}">
+        <meta name="twitter:image" content="${ogImage}">
+        
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
