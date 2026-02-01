@@ -111,7 +111,8 @@ app.post('/api/prompts/:id/copy', async (c) => {
   return c.json({ success: true })
 })
 
-app.get('/api/admin/prompts/:id', async (c) => {
+// Admin API - Get prompt by ID
+app.get('/api/admin-51adc6a8e924b23431240a1156034bae/prompts/:id', async (c) => {
   const { DB } = c.env
   const id = c.req.param('id')
   
@@ -194,7 +195,7 @@ app.post('/api/feedbacks', async (c) => {
 })
 
 // Admin API - Categories
-app.post('/api/admin/categories', async (c) => {
+app.post('/api/admin-51adc6a8e924b23431240a1156034bae/categories', async (c) => {
   const { DB } = c.env
   const { name } = await c.req.json()
   
@@ -213,7 +214,7 @@ app.post('/api/admin/categories', async (c) => {
   }
 })
 
-app.put('/api/admin/categories/:id', async (c) => {
+app.put('/api/admin-51adc6a8e924b23431240a1156034bae/categories/:id', async (c) => {
   const { DB } = c.env
   const id = c.req.param('id')
   const { name } = await c.req.json()
@@ -229,7 +230,7 @@ app.put('/api/admin/categories/:id', async (c) => {
   return c.json({ success: true })
 })
 
-app.delete('/api/admin/categories/:id', async (c) => {
+app.delete('/api/admin-51adc6a8e924b23431240a1156034bae/categories/:id', async (c) => {
   const { DB } = c.env
   const id = c.req.param('id')
   
@@ -239,7 +240,7 @@ app.delete('/api/admin/categories/:id', async (c) => {
 })
 
 // Admin API - Prompts
-app.post('/api/admin/prompts', async (c) => {
+app.post('/api/admin-51adc6a8e924b23431240a1156034bae/prompts', async (c) => {
   const { DB } = c.env
   const { title, prompt_text, category_id, image_url, image_urls } = await c.req.json()
   
@@ -268,7 +269,7 @@ app.post('/api/admin/prompts', async (c) => {
   return c.json({ success: true, id: promptId })
 })
 
-app.put('/api/admin/prompts/:id', async (c) => {
+app.put('/api/admin-51adc6a8e924b23431240a1156034bae/prompts/:id', async (c) => {
   const { DB } = c.env
   const id = c.req.param('id')
   const { title, prompt_text, category_id, image_url, image_urls } = await c.req.json()
@@ -300,7 +301,7 @@ app.put('/api/admin/prompts/:id', async (c) => {
   return c.json({ success: true })
 })
 
-app.delete('/api/admin/prompts/:id', async (c) => {
+app.delete('/api/admin-51adc6a8e924b23431240a1156034bae/prompts/:id', async (c) => {
   const { DB } = c.env
   const id = c.req.param('id')
   
@@ -310,7 +311,7 @@ app.delete('/api/admin/prompts/:id', async (c) => {
 })
 
 // Admin API - Image Upload (simulate)
-app.post('/api/admin/upload', async (c) => {
+app.post('/api/admin-51adc6a8e924b23431240a1156034bae/upload', async (c) => {
   const { R2 } = c.env
   const formData = await c.req.formData()
   const file = formData.get('file')
@@ -1869,7 +1870,7 @@ app.get('/prompt/:id', async (c) => {
             formData.append('file', file);
 
             try {
-              const response = await axios.post('/api/admin/upload', formData, {
+              const response = await axios.post('/api/admin-51adc6a8e924b23431240a1156034bae/upload', formData, {
                 headers: {
                   'Content-Type': 'multipart/form-data'
                 }
@@ -2143,8 +2144,8 @@ app.get('/prompt/:id', async (c) => {
   `)
 })
 
-// Admin page
-app.get('/admin', (c) => {
+// Admin page - Secure random URL
+app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
   return c.html(`
     <!DOCTYPE html>
     <html lang="ja">
@@ -2385,6 +2386,9 @@ app.get('/admin', (c) => {
 
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script>
+          // Admin API base path - keep this secret
+          const ADMIN_API_BASE = '/api/admin-51adc6a8e924b23431240a1156034bae';
+          
           let categories = [];
           let prompts = [];
           let editingCategoryId = null;
@@ -2487,7 +2491,7 @@ app.get('/admin', (c) => {
             }
 
             try {
-              await axios.put(\`/api/admin/categories/\${id}\`, { name });
+              await axios.put(\`\${ADMIN_API_BASE}/categories/\${id}\`, { name });
               await loadCategories();
               editingCategoryId = null;
               alert('カテゴリを更新しました');
@@ -2503,7 +2507,7 @@ app.get('/admin', (c) => {
             }
 
             try {
-              await axios.delete(\`/api/admin/categories/\${id}\`);
+              await axios.delete(\`\${ADMIN_API_BASE}/categories/\${id}\`);
               await loadCategories();
               alert('カテゴリを削除しました');
             } catch (error) {
@@ -2580,7 +2584,7 @@ app.get('/admin', (c) => {
             }
 
             try {
-              await axios.delete(\`/api/admin/prompts/\${id}\`);
+              await axios.delete(\`\${ADMIN_API_BASE}/prompts/\${id}\`);
               await loadPrompts();
               alert('プロンプトを削除しました');
             } catch (error) {
@@ -2591,7 +2595,7 @@ app.get('/admin', (c) => {
           // Edit prompt
           async function editPrompt(id) {
             try {
-              const response = await axios.get(\`/api/admin/prompts/\${id}\`);
+              const response = await axios.get(\`\${ADMIN_API_BASE}/prompts/\${id}\`);
               const prompt = response.data;
 
               // Fill form
@@ -2715,7 +2719,7 @@ app.get('/admin', (c) => {
             formData.append('file', file);
 
             try {
-              const response = await axios.post('/api/admin/upload', formData, {
+              const response = await axios.post('/api/admin-51adc6a8e924b23431240a1156034bae/upload', formData, {
                 headers: {
                   'Content-Type': 'multipart/form-data'
                 }
@@ -2813,7 +2817,7 @@ app.get('/admin', (c) => {
             }
 
             try {
-              await axios.post('/api/admin/categories', { name });
+              await axios.post('/api/admin-51adc6a8e924b23431240a1156034bae/categories', { name });
               await loadCategories();
               document.getElementById('category-form').reset();
               alert('カテゴリを追加しました');
@@ -2849,7 +2853,7 @@ app.get('/admin', (c) => {
             try {
               if (promptId) {
                 // Update existing prompt
-                await axios.put(\`/api/admin/prompts/\${promptId}\`, {
+                await axios.put(\`\${ADMIN_API_BASE}/prompts/\${promptId}\`, {
                   title,
                   category_id: parseInt(categoryId),
                   prompt_text: promptText,
@@ -2859,7 +2863,7 @@ app.get('/admin', (c) => {
                 alert('プロンプトを更新しました');
               } else {
                 // Create new prompt
-                await axios.post('/api/admin/prompts', {
+                await axios.post('/api/admin-51adc6a8e924b23431240a1156034bae/prompts', {
                   title,
                   category_id: parseInt(categoryId),
                   prompt_text: promptText,
