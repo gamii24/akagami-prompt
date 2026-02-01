@@ -2177,4 +2177,132 @@ app.get('/admin', (c) => {
   `)
 })
 
+// 404 Error Page
+app.notFound((c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>404 - ページが見つかりません | Akagami Prompt</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        
+        <!-- Google Analytics 4 -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-K00PV68PRE"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-K00PV68PRE', {
+            page_title: '404 - ページが見つかりません',
+            page_location: window.location.href
+          });
+        </script>
+        
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <style>
+          :root {
+            --accent-color: #E75556;
+          }
+          .accent-text {
+            color: var(--accent-color);
+          }
+          .accent-bg {
+            background-color: var(--accent-color);
+          }
+          .accent-border {
+            border-color: var(--accent-color);
+          }
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          .float-animation {
+            animation: float 3s ease-in-out infinite;
+          }
+        </style>
+    </head>
+    <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-2xl w-full text-center">
+            <!-- 404 Icon -->
+            <div class="mb-8 float-animation">
+                <i class="fas fa-search text-9xl accent-text opacity-80"></i>
+            </div>
+            
+            <!-- Error Message -->
+            <h1 class="text-6xl font-bold text-gray-800 mb-4">404</h1>
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">
+                ページが見つかりません
+            </h2>
+            <p class="text-gray-600 mb-8 text-lg">
+                お探しのページは存在しないか、移動した可能性があります。<br>
+                URLをご確認いただくか、トップページからお探しください。
+            </p>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                <a href="/" class="accent-bg text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition inline-flex items-center justify-center">
+                    <i class="fas fa-home mr-2"></i>
+                    トップページに戻る
+                </a>
+                <button onclick="history.back()" class="bg-white border-2 accent-border accent-text px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition inline-flex items-center justify-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    前のページに戻る
+                </button>
+            </div>
+            
+            <!-- Popular Links -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-star accent-text mr-2"></i>
+                    人気のページ
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <a href="/" class="text-left p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow transition">
+                        <div class="font-medium text-gray-800 mb-1">
+                            <i class="fas fa-lightbulb accent-text mr-2"></i>
+                            プロンプト一覧
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            画像生成プロンプトを探す
+                        </div>
+                    </a>
+                    <a href="/admin" class="text-left p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow transition">
+                        <div class="font-medium text-gray-800 mb-1">
+                            <i class="fas fa-cog accent-text mr-2"></i>
+                            管理画面
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            プロンプトを管理する
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="mt-12 text-gray-500 text-sm">
+                <p>
+                    <i class="fas fa-question-circle mr-1"></i>
+                    問題が解決しない場合は、URLが正しいかご確認ください
+                </p>
+            </div>
+        </div>
+        
+        <script>
+          // Google Analytics event tracking for 404
+          if (typeof gtag !== 'undefined') {
+            gtag('event', 'page_not_found', {
+              event_category: 'error',
+              event_label: window.location.pathname,
+              value: 404
+            });
+          }
+        </script>
+    </body>
+    </html>
+  `, 404)
+})
+
 export default app
