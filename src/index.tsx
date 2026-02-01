@@ -376,7 +376,7 @@ app.get('/', (c) => {
           }
           @media (max-width: 640px) {
             .grid-container {
-              grid-template-columns: repeat(1, 1fr);
+              grid-template-columns: repeat(2, 1fr);
             }
           }
           .prompt-card {
@@ -417,6 +417,12 @@ app.get('/', (c) => {
           }
           .copy-btn:hover {
             background-color: #d04445;
+          }
+          /* Hide copy button on mobile */
+          @media (max-width: 768px) {
+            .prompt-footer {
+              display: none;
+            }
           }
         </style>
     </head>
