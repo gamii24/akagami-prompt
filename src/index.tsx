@@ -620,7 +620,7 @@ app.get('/prompt/:id', (c) => {
           }
           .image-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
           }
           @media (max-width: 1280px) {
@@ -630,7 +630,7 @@ app.get('/prompt/:id', (c) => {
           }
           @media (max-width: 1024px) {
             .image-grid {
-              grid-template-columns: repeat(3, 1fr);
+              grid-template-columns: repeat(4, 1fr);
             }
           }
           @media (max-width: 768px) {
