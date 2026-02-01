@@ -996,25 +996,28 @@ app.get('/prompt/:id', (c) => {
             }
           });
 
-          // Copy button event listener
-          document.getElementById('copy-prompt-btn').addEventListener('click', async function(event) {
-            try {
-              // Check if promptData is loaded
-              if (!promptData || !promptData.prompt_text) {
-                alert('プロンプトを読み込み中です。もう一度お試しください。');
-                return;
+          // Copy button event listener using event delegation
+          document.addEventListener('click', async function(event) {
+            const copyBtn = event.target.closest('#copy-prompt-btn');
+            if (copyBtn) {
+              event.preventDefault();
+              try {
+                // Check if promptData is loaded
+                if (!promptData || !promptData.prompt_text) {
+                  alert('プロンプトを読み込み中です。もう一度お試しください。');
+                  return;
+                }
+                
+                await navigator.clipboard.writeText(promptData.prompt_text);
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
+                setTimeout(() => {
+                  copyBtn.innerHTML = originalHTML;
+                }, 2000);
+              } catch (error) {
+                console.error('Copy error:', error);
+                alert('コピーに失敗しました: ' + error.message);
               }
-              
-              await navigator.clipboard.writeText(promptData.prompt_text);
-              const btn = event.currentTarget;
-              const originalHTML = btn.innerHTML;
-              btn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
-              setTimeout(() => {
-                btn.innerHTML = originalHTML;
-              }, 2000);
-            } catch (error) {
-              console.error('Copy error:', error);
-              alert('コピーに失敗しました');
             }
           });
 
