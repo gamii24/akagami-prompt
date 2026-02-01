@@ -509,14 +509,13 @@ app.get('/', (c) => {
             }
 
             grid.innerHTML = allPrompts.map(prompt => {
-              const escapedText = prompt.prompt_text.replace(/'/g, "\\\\'").replace(/"/g, '\\\\"');
               return \`
               <div class="prompt-card">
                 <div class="prompt-image-wrapper" onclick="location.href='/prompt/\${prompt.id}'">
                   <img src="\${prompt.image_url}" alt="\${prompt.title}" class="prompt-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                 </div>
                 <div class="prompt-footer">
-                  <button onclick="copyPrompt(\${prompt.id}, '\${escapedText}')" class="copy-btn text-white px-4 py-2 rounded text-sm font-medium">
+                  <button class="copy-btn text-white px-4 py-2 rounded text-sm font-medium" data-prompt-id="\${prompt.id}">
                     <i class="fas fa-copy mr-2"></i>コピー
                   </button>
                 </div>
@@ -525,22 +524,48 @@ app.get('/', (c) => {
             }).join('');
           }
 
-          // Copy prompt to clipboard
-          async function copyPrompt(id, text) {
-            event.stopPropagation();
-            event.preventDefault();
-            try {
-              await navigator.clipboard.writeText(text);
-              const btn = event.currentTarget;
-              const originalHTML = btn.innerHTML;
-              btn.innerHTML = '<i class="fas fa-check mr-1"></i>コピー完了！';
-              setTimeout(() => {
-                btn.innerHTML = originalHTML;
-              }, 2000);
-            } catch (error) {
-              alert('コピーに失敗しました');
+          // Copy prompt to clipboard using event delegation
+          document.addEventListener('click', async function(event) {
+            const copyBtn = event.target.closest('.copy-btn');
+            if (copyBtn && copyBtn.dataset.promptId) {
+              event.stopPropagation();
+              event.preventDefault();
+              
+              const promptId = copyBtn.dataset.promptId;
+              const prompt = allPrompts.find(p => p.id == promptId);
+              
+              if (!prompt) {
+                alert('プロンプトが見つかりません');
+                return;
+              }
+              
+              try {
+                // Try clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  await navigator.clipboard.writeText(prompt.prompt_text);
+                } else {
+                  // Fallback for older browsers
+                  const textArea = document.createElement('textarea');
+                  textArea.value = prompt.prompt_text;
+                  textArea.style.position = 'fixed';
+                  textArea.style.left = '-999999px';
+                  document.body.appendChild(textArea);
+                  textArea.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(textArea);
+                }
+                
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
+                setTimeout(() => {
+                  copyBtn.innerHTML = originalHTML;
+                }, 2000);
+              } catch (error) {
+                console.error('Copy error:', error);
+                alert('コピーに失敗しました: ' + (error.message || 'Unknown error'));
+              }
             }
-          }
+          });
 
           // Filter by category
           function filterCategory(category) {
