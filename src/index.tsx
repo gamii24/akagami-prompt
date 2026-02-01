@@ -1092,6 +1092,42 @@ app.get('/', (c) => {
           loadCategories();
           loadPrompts();
         </script>
+
+        <!-- Footer -->
+        <footer class="accent-bg text-white py-8 mt-16">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex flex-col items-center space-y-4">
+                    <h3 class="text-lg font-semibold">Follow Us</h3>
+                    <div class="flex space-x-6">
+                        <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Threads 1">
+                            <i class="fab fa-threads text-2xl"></i>
+                            <span class="text-xs">Threads 1</span>
+                        </a>
+                        <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Threads 2">
+                            <i class="fab fa-threads text-2xl"></i>
+                            <span class="text-xs">Threads 2</span>
+                        </a>
+                        <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Instagram">
+                            <i class="fab fa-instagram text-2xl"></i>
+                            <span class="text-xs">Instagram</span>
+                        </a>
+                        <a href="https://www.youtube.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="YouTube">
+                            <i class="fab fa-youtube text-2xl"></i>
+                            <span class="text-xs">YouTube</span>
+                        </a>
+                    </div>
+                    <p class="text-sm text-gray-200 mt-4">© 2026 Akagami Prompt. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
     </body>
     </html>
   `)
@@ -2027,6 +2063,42 @@ app.get('/prompt/:id', async (c) => {
           // Initialize
           loadPrompt();
         </script>
+
+        <!-- Footer -->
+        <footer class="accent-bg text-white py-8 mt-16">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex flex-col items-center space-y-4">
+                    <h3 class="text-lg font-semibold">Follow Us</h3>
+                    <div class="flex space-x-6">
+                        <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Threads 1">
+                            <i class="fab fa-threads text-2xl"></i>
+                            <span class="text-xs">Threads 1</span>
+                        </a>
+                        <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Threads 2">
+                            <i class="fab fa-threads text-2xl"></i>
+                            <span class="text-xs">Threads 2</span>
+                        </a>
+                        <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Instagram">
+                            <i class="fab fa-instagram text-2xl"></i>
+                            <span class="text-xs">Instagram</span>
+                        </a>
+                        <a href="https://www.youtube.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="YouTube">
+                            <i class="fab fa-youtube text-2xl"></i>
+                            <span class="text-xs">YouTube</span>
+                        </a>
+                    </div>
+                    <p class="text-sm text-gray-200 mt-4">© 2026 Akagami Prompt. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
     </body>
     </html>
   `)
@@ -2770,6 +2842,42 @@ app.get('/admin', (c) => {
           loadCategories();
           loadPrompts();
         </script>
+
+        <!-- Footer -->
+        <footer class="accent-bg text-white py-8 mt-16">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex flex-col items-center space-y-4">
+                    <h3 class="text-lg font-semibold">Follow Us</h3>
+                    <div class="flex space-x-6">
+                        <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Threads 1">
+                            <i class="fab fa-threads text-2xl"></i>
+                            <span class="text-xs">Threads 1</span>
+                        </a>
+                        <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Threads 2">
+                            <i class="fab fa-threads text-2xl"></i>
+                            <span class="text-xs">Threads 2</span>
+                        </a>
+                        <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Instagram">
+                            <i class="fab fa-instagram text-2xl"></i>
+                            <span class="text-xs">Instagram</span>
+                        </a>
+                        <a href="https://www.youtube.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="YouTube">
+                            <i class="fab fa-youtube text-2xl"></i>
+                            <span class="text-xs">YouTube</span>
+                        </a>
+                    </div>
+                    <p class="text-sm text-gray-200 mt-4">© 2026 Akagami Prompt. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
     </body>
     </html>
   `)
