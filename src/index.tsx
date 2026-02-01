@@ -837,8 +837,8 @@ app.get('/', (c) => {
                   <img src="\${prompt.image_url}" alt="\${prompt.title}" class="prompt-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                 </div>
                 <div class="prompt-footer">
-                  <button class="copy-btn text-white px-4 py-2 rounded text-sm font-medium" data-prompt-id="\${prompt.id}">
-                    <i class="fas fa-copy mr-2"></i>コピー
+                  <button class="copy-btn text-white px-4 py-2 rounded text-sm font-light" data-prompt-id="\${prompt.id}">
+                    Copy
                   </button>
                 </div>
               </div>
@@ -900,7 +900,7 @@ app.get('/', (c) => {
                 createSparkleEffect(x, y);
                 
                 const originalHTML = copyBtn.innerHTML;
-                copyBtn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
+                copyBtn.innerHTML = 'Copied!';
                 setTimeout(() => {
                   copyBtn.innerHTML = originalHTML;
                 }, 2000);
@@ -1408,8 +1408,8 @@ app.get('/prompt/:id', async (c) => {
                             <h2 class="text-lg font-bold text-gray-800 mb-3">プロンプト</h2>
                             <p id="prompt-text" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
                         </div>
-                        <button id="copy-prompt-btn" class="copy-btn text-white px-6 py-3 rounded-lg font-medium flex-shrink-0">
-                            <i class="fas fa-copy mr-2"></i>コピー
+                        <button id="copy-prompt-btn" class="copy-btn text-white px-6 py-3 rounded-lg font-light flex-shrink-0">
+                            Copy
                         </button>
                     </div>
                 </div>
@@ -1653,7 +1653,7 @@ app.get('/prompt/:id', async (c) => {
               await navigator.clipboard.writeText(promptData.prompt_text);
               const btn = event.currentTarget;
               const originalHTML = btn.innerHTML;
-              btn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
+              btn.innerHTML = 'Copied!';
               setTimeout(() => {
                 btn.innerHTML = originalHTML;
               }, 2000);
@@ -1875,7 +1875,7 @@ app.get('/prompt/:id', async (c) => {
                 
                 // Update button UI
                 const originalHTML = copyBtn.innerHTML;
-                copyBtn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
+                copyBtn.innerHTML = 'Copied!';
                 setTimeout(() => {
                   copyBtn.innerHTML = originalHTML;
                 }, 2000);
