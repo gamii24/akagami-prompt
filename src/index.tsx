@@ -485,27 +485,54 @@ app.get('/', (c) => {
           }
           .grid-container {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
             gap: 1.5rem;
           }
-          @media (max-width: 1280px) {
-            .grid-container {
-              grid-template-columns: repeat(4, 1fr);
+          /* Desktop grid layouts - user selectable */
+          @media (min-width: 769px) {
+            .grid-container.cols-5 {
+              grid-template-columns: repeat(5, 1fr);
+            }
+            .grid-container.cols-8 {
+              grid-template-columns: repeat(8, 1fr);
+            }
+            .grid-container.cols-10 {
+              grid-template-columns: repeat(10, 1fr);
             }
           }
-          @media (max-width: 1024px) {
-            .grid-container {
-              grid-template-columns: repeat(3, 1fr);
-            }
-          }
+          /* Mobile always 2 columns */
           @media (max-width: 768px) {
             .grid-container {
               grid-template-columns: repeat(2, 1fr);
             }
           }
-          @media (max-width: 640px) {
-            .grid-container {
-              grid-template-columns: repeat(2, 1fr);
+          /* Grid column switcher buttons */
+          .grid-switcher {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+          }
+          .grid-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #6b7280;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+          .grid-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+          }
+          .grid-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+          }
+          @media (max-width: 768px) {
+            .grid-switcher {
+              display: none;
             }
           }
           .prompt-card {
@@ -576,31 +603,47 @@ app.get('/', (c) => {
             </div>
         </div>
         
-        <!-- Search Bar -->
+        <!-- Search Bar and Grid Switcher -->
         <div class="max-w-7xl mx-auto px-4 pb-4">
-            <div class="relative">
-                <input 
-                    type="text" 
-                    id="search-input" 
-                    placeholder="プロンプトを検索（タイトル・プロンプトテキスト）" 
-                    class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none transition"
-                    oninput="searchPrompts()"
-                />
-                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <button 
-                    id="clear-search" 
-                    onclick="clearSearch()" 
-                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition hidden"
-                >
-                    <i class="fas fa-times-circle text-xl"></i>
-                </button>
+            <div class="flex items-center gap-4">
+                <div class="relative flex-1">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        placeholder="プロンプトを検索（タイトル・プロンプトテキスト）" 
+                        class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none transition"
+                        oninput="searchPrompts()"
+                    />
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <button 
+                        id="clear-search" 
+                        onclick="clearSearch()" 
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition hidden"
+                    >
+                        <i class="fas fa-times-circle text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Grid Column Switcher (PC only) -->
+                <div class="grid-switcher">
+                    <span class="text-sm text-gray-600">表示:</span>
+                    <button onclick="changeGridColumns(5)" class="grid-btn active" data-cols="5">
+                        <i class="fas fa-th mr-1"></i>5列
+                    </button>
+                    <button onclick="changeGridColumns(8)" class="grid-btn" data-cols="8">
+                        <i class="fas fa-th mr-1"></i>8列
+                    </button>
+                    <button onclick="changeGridColumns(10)" class="grid-btn" data-cols="10">
+                        <i class="fas fa-th mr-1"></i>10列
+                    </button>
+                </div>
             </div>
             <div id="search-results-count" class="mt-2 text-sm text-gray-600 hidden"></div>
         </div>
 
         <!-- Prompts Grid -->
         <main class="max-w-7xl mx-auto px-4 pb-12">
-            <div id="prompts-grid" class="grid-container">
+            <div id="prompts-grid" class="grid-container cols-5">
                 <!-- Skeleton Loading (Initial) -->
                 <div class="skeleton-card skeleton"></div>
                 <div class="skeleton-card skeleton"></div>
@@ -834,6 +877,45 @@ app.get('/', (c) => {
             searchInput.focus();
           }
           
+          // Change grid columns (PC only)
+          function changeGridColumns(cols) {
+            const grid = document.getElementById('prompts-grid');
+            
+            // Remove all column classes
+            grid.classList.remove('cols-5', 'cols-8', 'cols-10');
+            
+            // Add selected column class
+            grid.classList.add(\`cols-\${cols}\`);
+            
+            // Update button states
+            document.querySelectorAll('.grid-btn').forEach(btn => {
+              btn.classList.remove('active');
+              if (btn.dataset.cols == cols) {
+                btn.classList.add('active');
+              }
+            });
+            
+            // Save preference to localStorage
+            localStorage.setItem('gridColumns', cols);
+            
+            // Google Analytics event tracking
+            if (typeof gtag !== 'undefined') {
+              gtag('event', 'change_grid_columns', {
+                event_category: 'engagement',
+                event_label: \`\${cols}列\`,
+                value: cols
+              });
+            }
+          }
+          
+          // Load grid preference from localStorage on page load
+          function loadGridPreference() {
+            const savedCols = localStorage.getItem('gridColumns');
+            if (savedCols) {
+              changeGridColumns(parseInt(savedCols));
+            }
+          }
+          
           // Filter by category
           function filterCategory(category) {
             // Update active button
@@ -865,6 +947,7 @@ app.get('/', (c) => {
           }
 
           // Initialize
+          loadGridPreference();
           loadCategories();
           loadPrompts();
         </script>
