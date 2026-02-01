@@ -408,6 +408,33 @@ app.get('/', (c) => {
             background-color: var(--accent-color);
             color: white;
           }
+          
+          /* Skeleton Loading Animation */
+          @keyframes shimmer {
+            0% {
+              background-position: -1000px 0;
+            }
+            100% {
+              background-position: 1000px 0;
+            }
+          }
+          .skeleton {
+            background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+            background-size: 2000px 100%;
+            animation: shimmer 2s infinite linear;
+            border-radius: 0.5rem;
+          }
+          .skeleton-card {
+            aspect-ratio: 4/5;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+          .skeleton-button {
+            height: 40px;
+            border-radius: 0.5rem;
+          }
+          
           .category-scroll {
             display: flex;
             gap: 0.5rem;
@@ -538,10 +565,17 @@ app.get('/', (c) => {
         <!-- Prompts Grid -->
         <main class="max-w-7xl mx-auto px-4 pb-12">
             <div id="prompts-grid" class="grid-container">
-                <div class="col-span-full text-center py-12">
-                    <i class="fas fa-spinner fa-spin text-4xl accent-text"></i>
-                    <p class="mt-4 text-gray-600">読み込み中...</p>
-                </div>
+                <!-- Skeleton Loading (Initial) -->
+                <div class="skeleton-card skeleton"></div>
+                <div class="skeleton-card skeleton"></div>
+                <div class="skeleton-card skeleton"></div>
+                <div class="skeleton-card skeleton"></div>
+                <div class="skeleton-card skeleton"></div>
+                <div class="skeleton-card skeleton" style="display: none;"></div>
+                <div class="skeleton-card skeleton" style="display: none;"></div>
+                <div class="skeleton-card skeleton" style="display: none;"></div>
+                <div class="skeleton-card skeleton" style="display: none;"></div>
+                <div class="skeleton-card skeleton" style="display: none;"></div>
             </div>
         </main>
 
@@ -549,6 +583,23 @@ app.get('/', (c) => {
         <script>
           let allPrompts = [];
           let categories = [];
+          
+          // Show skeleton loading
+          function showSkeletonLoading() {
+            const grid = document.getElementById('prompts-grid');
+            grid.innerHTML = `
+              <div class="skeleton-card skeleton"></div>
+              <div class="skeleton-card skeleton"></div>
+              <div class="skeleton-card skeleton"></div>
+              <div class="skeleton-card skeleton"></div>
+              <div class="skeleton-card skeleton"></div>
+              <div class="skeleton-card skeleton"></div>
+              <div class="skeleton-card skeleton"></div>
+              <div class="skeleton-card skeleton"></div>
+              <div class="skeleton-card skeleton"></div>
+              <div class="skeleton-card skeleton"></div>
+            `;
+          }
 
           // Load categories
           async function loadCategories() {
@@ -572,6 +623,9 @@ app.get('/', (c) => {
 
           // Load prompts
           async function loadPrompts(category = '') {
+            // Show skeleton loading
+            showSkeletonLoading();
+            
             try {
               const url = category ? \`/api/prompts?category=\${encodeURIComponent(category)}\` : '/api/prompts';
               const response = await axios.get(url);
@@ -776,6 +830,46 @@ app.get('/prompt/:id', async (c) => {
           .accent-border {
             border-color: var(--accent-color);
           }
+          
+          /* Skeleton Loading Animation */
+          @keyframes shimmer {
+            0% {
+              background-position: -1000px 0;
+            }
+            100% {
+              background-position: 1000px 0;
+            }
+          }
+          .skeleton {
+            background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+            background-size: 2000px 100%;
+            animation: shimmer 2s infinite linear;
+            border-radius: 0.5rem;
+          }
+          .skeleton-title {
+            height: 36px;
+            width: 60%;
+            margin-bottom: 16px;
+          }
+          .skeleton-text {
+            height: 20px;
+            margin-bottom: 12px;
+          }
+          .skeleton-text-short {
+            height: 20px;
+            width: 80%;
+            margin-bottom: 12px;
+          }
+          .skeleton-image {
+            aspect-ratio: 4/5;
+            border-radius: 0.5rem;
+          }
+          .skeleton-button {
+            height: 44px;
+            width: 120px;
+            border-radius: 0.5rem;
+          }
+          
           .image-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -935,10 +1029,21 @@ app.get('/prompt/:id', async (c) => {
         </header>
 
         <main class="max-w-6xl mx-auto px-4 py-8">
-            <!-- Loading -->
-            <div id="loading" class="text-center py-12">
-                <i class="fas fa-spinner fa-spin text-4xl accent-text"></i>
-                <p class="mt-4 text-gray-600">読み込み中...</p>
+            <!-- Loading Skeleton -->
+            <div id="loading">
+                <div class="skeleton skeleton-title"></div>
+                <div class="image-grid mb-8">
+                    <div class="skeleton skeleton-image"></div>
+                    <div class="skeleton skeleton-image"></div>
+                    <div class="skeleton skeleton-image"></div>
+                    <div class="skeleton skeleton-image"></div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-6 mb-8">
+                    <div class="skeleton skeleton-text mb-3" style="width: 120px; height: 24px;"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text-short"></div>
+                </div>
             </div>
 
             <!-- Content -->
