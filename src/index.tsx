@@ -580,6 +580,49 @@ app.get('/', (c) => {
               display: none;
             }
           }
+          
+          /* Sparkle effect for copy button */
+          .sparkle-container {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+          }
+          .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 50%, transparent 70%);
+            border-radius: 50%;
+            animation: sparkle-float 1s ease-out forwards;
+            box-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
+          }
+          @keyframes sparkle-float {
+            0% {
+              opacity: 1;
+              transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+              opacity: 0;
+              transform: translate(var(--tx), var(--ty)) scale(0.3) rotate(360deg);
+            }
+          }
+          .sparkle-star {
+            position: absolute;
+            color: #FFD700;
+            font-size: 20px;
+            animation: sparkle-star-float 1.2s ease-out forwards;
+            text-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
+          }
+          @keyframes sparkle-star-float {
+            0% {
+              opacity: 1;
+              transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+              opacity: 0;
+              transform: translate(var(--tx), var(--ty)) scale(0.5) rotate(720deg);
+            }
+          }
         </style>
     </head>
     <body class="bg-white">
@@ -662,6 +705,57 @@ app.get('/', (c) => {
         <script>
           let allPrompts = [];
           let categories = [];
+          
+          // Create sparkle effect
+          function createSparkleEffect(x, y) {
+            const container = document.createElement('div');
+            container.className = 'sparkle-container';
+            container.style.left = x + 'px';
+            container.style.top = y + 'px';
+            document.body.appendChild(container);
+            
+            // Create sparkles (circles)
+            const sparkleCount = 15;
+            for (let i = 0; i < sparkleCount; i++) {
+              const sparkle = document.createElement('div');
+              sparkle.className = 'sparkle';
+              
+              // Random direction and distance
+              const angle = (Math.PI * 2 * i) / sparkleCount;
+              const distance = 50 + Math.random() * 50;
+              const tx = Math.cos(angle) * distance;
+              const ty = Math.sin(angle) * distance;
+              
+              sparkle.style.setProperty('--tx', tx + 'px');
+              sparkle.style.setProperty('--ty', ty + 'px');
+              
+              container.appendChild(sparkle);
+            }
+            
+            // Create star symbols (✨⭐💫)
+            const starSymbols = ['✨', '⭐', '💫', '✨', '⭐'];
+            starSymbols.forEach((symbol, i) => {
+              const star = document.createElement('div');
+              star.className = 'sparkle-star';
+              star.textContent = symbol;
+              
+              // Random direction and distance
+              const angle = Math.random() * Math.PI * 2;
+              const distance = 60 + Math.random() * 80;
+              const tx = Math.cos(angle) * distance;
+              const ty = Math.sin(angle) * distance;
+              
+              star.style.setProperty('--tx', tx + 'px');
+              star.style.setProperty('--ty', ty + 'px');
+              
+              container.appendChild(star);
+            });
+            
+            // Remove after animation
+            setTimeout(() => {
+              container.remove();
+            }, 1200);
+          }
           
           // Show skeleton loading
           function showSkeletonLoading() {
@@ -798,6 +892,12 @@ app.get('/', (c) => {
                     value: promptId
                   });
                 }
+                
+                // Show sparkle effect
+                const rect = copyBtn.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                createSparkleEffect(x, y);
                 
                 const originalHTML = copyBtn.innerHTML;
                 copyBtn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
@@ -1219,6 +1319,49 @@ app.get('/prompt/:id', async (c) => {
           .submit-btn:hover {
             background-color: #d04445;
           }
+          
+          /* Sparkle effect for copy button */
+          .sparkle-container {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+          }
+          .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 50%, transparent 70%);
+            border-radius: 50%;
+            animation: sparkle-float 1s ease-out forwards;
+            box-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
+          }
+          @keyframes sparkle-float {
+            0% {
+              opacity: 1;
+              transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+              opacity: 0;
+              transform: translate(var(--tx), var(--ty)) scale(0.3) rotate(360deg);
+            }
+          }
+          .sparkle-star {
+            position: absolute;
+            color: #FFD700;
+            font-size: 20px;
+            animation: sparkle-star-float 1.2s ease-out forwards;
+            text-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
+          }
+          @keyframes sparkle-star-float {
+            0% {
+              opacity: 1;
+              transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+              opacity: 0;
+              transform: translate(var(--tx), var(--ty)) scale(0.5) rotate(720deg);
+            }
+          }
         </style>
     </head>
     <body class="bg-white">
@@ -1352,6 +1495,57 @@ app.get('/prompt/:id', async (c) => {
           let promptData = null;
           let lightboxImages = [];
           let currentLightboxIndex = 0;
+
+          // Create sparkle effect
+          function createSparkleEffect(x, y) {
+            const container = document.createElement('div');
+            container.className = 'sparkle-container';
+            container.style.left = x + 'px';
+            container.style.top = y + 'px';
+            document.body.appendChild(container);
+            
+            // Create sparkles (circles)
+            const sparkleCount = 15;
+            for (let i = 0; i < sparkleCount; i++) {
+              const sparkle = document.createElement('div');
+              sparkle.className = 'sparkle';
+              
+              // Random direction and distance
+              const angle = (Math.PI * 2 * i) / sparkleCount;
+              const distance = 50 + Math.random() * 50;
+              const tx = Math.cos(angle) * distance;
+              const ty = Math.sin(angle) * distance;
+              
+              sparkle.style.setProperty('--tx', tx + 'px');
+              sparkle.style.setProperty('--ty', ty + 'px');
+              
+              container.appendChild(sparkle);
+            }
+            
+            // Create star symbols (✨⭐💫)
+            const starSymbols = ['✨', '⭐', '💫', '✨', '⭐'];
+            starSymbols.forEach((symbol, i) => {
+              const star = document.createElement('div');
+              star.className = 'sparkle-star';
+              star.textContent = symbol;
+              
+              // Random direction and distance
+              const angle = Math.random() * Math.PI * 2;
+              const distance = 60 + Math.random() * 80;
+              const tx = Math.cos(angle) * distance;
+              const ty = Math.sin(angle) * distance;
+              
+              star.style.setProperty('--tx', tx + 'px');
+              star.style.setProperty('--ty', ty + 'px');
+              
+              container.appendChild(star);
+            });
+            
+            // Remove after animation
+            setTimeout(() => {
+              container.remove();
+            }, 1200);
+          }
 
           // Load prompt details
           async function loadPrompt() {
@@ -1672,6 +1866,12 @@ app.get('/prompt/:id', async (c) => {
                     value: promptData.id
                   });
                 }
+                
+                // Show sparkle effect
+                const rect = copyBtn.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                createSparkleEffect(x, y);
                 
                 // Update button UI
                 const originalHTML = copyBtn.innerHTML;
