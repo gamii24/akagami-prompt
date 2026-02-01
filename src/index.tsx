@@ -66,11 +66,6 @@ app.get('/ogp-image.png', (c) => {
     'Cache-Control': 'public, max-age=31536000'
   });
 })
-  return c.body(svg, 200, {
-    'Content-Type': 'image/svg+xml',
-    'Cache-Control': 'public, max-age=31536000'
-  });
-})
 
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
