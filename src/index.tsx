@@ -591,10 +591,8 @@ app.get('/', (c) => {
             position: absolute;
             width: 10px;
             height: 10px;
-            background: radial-gradient(circle, #FFD700 0%, #FFA500 50%, transparent 70%);
             border-radius: 50%;
             animation: sparkle-float 1s ease-out forwards;
-            box-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
           }
           @keyframes sparkle-float {
             0% {
@@ -608,10 +606,8 @@ app.get('/', (c) => {
           }
           .sparkle-star {
             position: absolute;
-            color: #FFD700;
             font-size: 20px;
             animation: sparkle-star-float 1.2s ease-out forwards;
-            text-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
           }
           @keyframes sparkle-star-float {
             0% {
@@ -714,11 +710,31 @@ app.get('/', (c) => {
             container.style.top = y + 'px';
             document.body.appendChild(container);
             
+            // Colorful palette
+            const colors = [
+              ['#FF6B6B', '#FF8E53'], // Red-Orange
+              ['#4ECDC4', '#44A08D'], // Teal-Green
+              ['#A8E6CF', '#56CCF2'], // Mint-Blue
+              ['#FFD93D', '#F9CA24'], // Yellow
+              ['#FF6348', '#FF4757'], // Red
+              ['#A29BFE', '#6C5CE7'], // Purple
+              ['#FD79A8', '#E84393'], // Pink
+              ['#55EFC4', '#00D2D3'], // Turquoise
+              ['#74B9FF', '#0984E3'], // Blue
+              ['#FAB1A0', '#E17055'], // Peach
+            ];
+            
             // Create sparkles (circles)
             const sparkleCount = 15;
             for (let i = 0; i < sparkleCount; i++) {
               const sparkle = document.createElement('div');
               sparkle.className = 'sparkle';
+              
+              // Random color from palette
+              const colorPair = colors[Math.floor(Math.random() * colors.length)];
+              const gradient = \`radial-gradient(circle, \${colorPair[0]} 0%, \${colorPair[1]} 50%, transparent 70%)\`;
+              sparkle.style.background = gradient;
+              sparkle.style.boxShadow = \`0 0 10px \${colorPair[0]}, 0 0 20px \${colorPair[1]}\`;
               
               // Random direction and distance
               const angle = (Math.PI * 2 * i) / sparkleCount;
@@ -732,12 +748,16 @@ app.get('/', (c) => {
               container.appendChild(sparkle);
             }
             
-            // Create star symbols (✨⭐💫)
-            const starSymbols = ['✨', '⭐', '💫', '✨', '⭐'];
+            // Create star symbols (✨⭐💫🌟⭐)
+            const starSymbols = ['✨', '⭐', '💫', '🌟', '⭐', '✨', '💖', '💙'];
             starSymbols.forEach((symbol, i) => {
               const star = document.createElement('div');
               star.className = 'sparkle-star';
               star.textContent = symbol;
+              
+              // Random color for text shadow
+              const colorPair = colors[Math.floor(Math.random() * colors.length)];
+              star.style.textShadow = \`0 0 10px \${colorPair[0]}, 0 0 20px \${colorPair[1]}\`;
               
               // Random direction and distance
               const angle = Math.random() * Math.PI * 2;
@@ -1330,10 +1350,8 @@ app.get('/prompt/:id', async (c) => {
             position: absolute;
             width: 10px;
             height: 10px;
-            background: radial-gradient(circle, #FFD700 0%, #FFA500 50%, transparent 70%);
             border-radius: 50%;
             animation: sparkle-float 1s ease-out forwards;
-            box-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
           }
           @keyframes sparkle-float {
             0% {
@@ -1347,10 +1365,8 @@ app.get('/prompt/:id', async (c) => {
           }
           .sparkle-star {
             position: absolute;
-            color: #FFD700;
             font-size: 20px;
             animation: sparkle-star-float 1.2s ease-out forwards;
-            text-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
           }
           @keyframes sparkle-star-float {
             0% {
@@ -1504,11 +1520,31 @@ app.get('/prompt/:id', async (c) => {
             container.style.top = y + 'px';
             document.body.appendChild(container);
             
+            // Colorful palette
+            const colors = [
+              ['#FF6B6B', '#FF8E53'], // Red-Orange
+              ['#4ECDC4', '#44A08D'], // Teal-Green
+              ['#A8E6CF', '#56CCF2'], // Mint-Blue
+              ['#FFD93D', '#F9CA24'], // Yellow
+              ['#FF6348', '#FF4757'], // Red
+              ['#A29BFE', '#6C5CE7'], // Purple
+              ['#FD79A8', '#E84393'], // Pink
+              ['#55EFC4', '#00D2D3'], // Turquoise
+              ['#74B9FF', '#0984E3'], // Blue
+              ['#FAB1A0', '#E17055'], // Peach
+            ];
+            
             // Create sparkles (circles)
             const sparkleCount = 15;
             for (let i = 0; i < sparkleCount; i++) {
               const sparkle = document.createElement('div');
               sparkle.className = 'sparkle';
+              
+              // Random color from palette
+              const colorPair = colors[Math.floor(Math.random() * colors.length)];
+              const gradient = \`radial-gradient(circle, \${colorPair[0]} 0%, \${colorPair[1]} 50%, transparent 70%)\`;
+              sparkle.style.background = gradient;
+              sparkle.style.boxShadow = \`0 0 10px \${colorPair[0]}, 0 0 20px \${colorPair[1]}\`;
               
               // Random direction and distance
               const angle = (Math.PI * 2 * i) / sparkleCount;
@@ -1522,12 +1558,16 @@ app.get('/prompt/:id', async (c) => {
               container.appendChild(sparkle);
             }
             
-            // Create star symbols (✨⭐💫)
-            const starSymbols = ['✨', '⭐', '💫', '✨', '⭐'];
+            // Create star symbols (✨⭐💫🌟⭐)
+            const starSymbols = ['✨', '⭐', '💫', '🌟', '⭐', '✨', '💖', '💙'];
             starSymbols.forEach((symbol, i) => {
               const star = document.createElement('div');
               star.className = 'sparkle-star';
               star.textContent = symbol;
+              
+              // Random color for text shadow
+              const colorPair = colors[Math.floor(Math.random() * colors.length)];
+              star.style.textShadow = \`0 0 10px \${colorPair[0]}, 0 0 20px \${colorPair[1]}\`;
               
               // Random direction and distance
               const angle = Math.random() * Math.PI * 2;
