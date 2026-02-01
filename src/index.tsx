@@ -998,9 +998,12 @@ app.get('/prompt/:id', (c) => {
 
           // Copy button event listener using event delegation
           document.addEventListener('click', async function(event) {
+            // Check if click target is the copy button or its child element
             const copyBtn = event.target.closest('#copy-prompt-btn');
             if (copyBtn) {
               event.preventDefault();
+              event.stopPropagation();
+              
               try {
                 // Check if promptData is loaded
                 if (!promptData || !promptData.prompt_text) {
@@ -1008,7 +1011,22 @@ app.get('/prompt/:id', (c) => {
                   return;
                 }
                 
-                await navigator.clipboard.writeText(promptData.prompt_text);
+                // Try to copy to clipboard
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  await navigator.clipboard.writeText(promptData.prompt_text);
+                } else {
+                  // Fallback for older browsers
+                  const textArea = document.createElement('textarea');
+                  textArea.value = promptData.prompt_text;
+                  textArea.style.position = 'fixed';
+                  textArea.style.left = '-999999px';
+                  document.body.appendChild(textArea);
+                  textArea.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(textArea);
+                }
+                
+                // Update button UI
                 const originalHTML = copyBtn.innerHTML;
                 copyBtn.innerHTML = '<i class="fas fa-check mr-2"></i>コピー完了！';
                 setTimeout(() => {
@@ -1016,7 +1034,7 @@ app.get('/prompt/:id', (c) => {
                 }, 2000);
               } catch (error) {
                 console.error('Copy error:', error);
-                alert('コピーに失敗しました: ' + error.message);
+                alert('コピーに失敗しました: ' + (error.message || 'Unknown error'));
               }
             }
           });
