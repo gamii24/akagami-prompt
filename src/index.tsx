@@ -587,7 +587,7 @@ app.get('/', (c) => {
           // Show skeleton loading
           function showSkeletonLoading() {
             const grid = document.getElementById('prompts-grid');
-            grid.innerHTML = `
+            grid.innerHTML = \`
               <div class="skeleton-card skeleton"></div>
               <div class="skeleton-card skeleton"></div>
               <div class="skeleton-card skeleton"></div>
@@ -598,7 +598,7 @@ app.get('/', (c) => {
               <div class="skeleton-card skeleton"></div>
               <div class="skeleton-card skeleton"></div>
               <div class="skeleton-card skeleton"></div>
-            `;
+            \`;
           }
 
           // Load categories
