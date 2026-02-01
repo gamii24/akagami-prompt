@@ -645,8 +645,10 @@ app.get('/', (c) => {
         <header class="accent-bg text-white py-6 shadow-md">
             <div class="max-w-7xl mx-auto px-4">
                 <h1 class="text-3xl font-bold">
-                    <i class="fas fa-sparkles mr-2"></i>
-                    Akagami Prompt
+                    <a href="/" class="flex items-center hover:opacity-80 transition-opacity cursor-pointer" style="text-decoration: none; color: inherit;">
+                        <i class="fas fa-sparkles mr-2"></i>
+                        Akagami Prompt
+                    </a>
                 </h1>
             </div>
         </header>
