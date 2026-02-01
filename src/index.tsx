@@ -373,6 +373,11 @@ app.get('/', (c) => {
         <meta name="description" content="ビジネスシーンで使える画像生成プロンプトを共有。プロフェッショナルなビジネスポートレート、プレゼン資料、アイコン写真など、働く女性の日常をサポートするAI画像生成プロンプトが満載。">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         
+        <!-- Google Fonts - Rounded Gothic -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500&display=swap" rel="stylesheet">
+        
         <!-- Open Graph / Facebook / Threads -->
         <meta property="og:type" content="website">
         <meta property="og:url" content="https://akagami-prompt.pages.dev/">
@@ -570,9 +575,23 @@ app.get('/', (c) => {
             background-color: var(--accent-color);
             transition: all 0.2s;
             width: 100%;
+            font-family: 'Rounded Mplus 1c', 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'メイリオ', Meiryo, sans-serif;
           }
           .copy-btn:hover {
             background-color: #d04445;
+          }
+          /* Responsive copy button height based on grid columns */
+          .cols-5 .copy-btn {
+            padding: 0.4rem 1rem;
+            font-size: 0.875rem;
+          }
+          .cols-8 .copy-btn {
+            padding: 0.3rem 0.75rem;
+            font-size: 0.75rem;
+          }
+          .cols-10 .copy-btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
           }
           /* Hide copy button on mobile */
           @media (max-width: 768px) {
@@ -857,7 +876,7 @@ app.get('/', (c) => {
                   <img src="\${prompt.image_url}" alt="\${prompt.title}" class="prompt-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                 </div>
                 <div class="prompt-footer">
-                  <button class="copy-btn text-white px-4 py-2 rounded text-sm font-light" data-prompt-id="\${prompt.id}">
+                  <button class="copy-btn text-white px-4 rounded text-sm font-light" data-prompt-id="\${prompt.id}">
                     Copy
                   </button>
                 </div>
@@ -1109,6 +1128,11 @@ app.get('/prompt/:id', async (c) => {
         <meta name="description" content="${ogDescription}">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         
+        <!-- Google Fonts - Rounded Gothic -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500&display=swap" rel="stylesheet">
+        
         <!-- Open Graph / Facebook / Threads -->
         <meta property="og:type" content="article">
         <meta property="og:url" content="${ogUrl}">
@@ -1340,6 +1364,17 @@ app.get('/prompt/:id', async (c) => {
             background-color: #d04445;
           }
           
+          /* Detail page copy button */
+          .copy-btn-detail {
+            background-color: var(--accent-color);
+            transition: all 0.2s;
+            font-family: 'Rounded Mplus 1c', 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'メイリオ', Meiryo, sans-serif;
+            padding: 0.6rem 1.5rem; /* py-3の0.8倍: 3 * 0.25rem * 0.8 = 0.6rem */
+          }
+          .copy-btn-detail:hover {
+            background-color: #d04445;
+          }
+          
           /* Sparkle effect for copy button */
           .sparkle-container {
             position: fixed;
@@ -1424,7 +1459,7 @@ app.get('/prompt/:id', async (c) => {
                             <h2 class="text-lg font-bold text-gray-800 mb-3">プロンプト</h2>
                             <p id="prompt-text" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
                         </div>
-                        <button id="copy-prompt-btn" class="copy-btn text-white px-6 py-3 rounded-lg font-light flex-shrink-0">
+                        <button id="copy-prompt-btn" class="copy-btn-detail text-white px-6 rounded-lg font-light flex-shrink-0">
                             Copy
                         </button>
                     </div>
