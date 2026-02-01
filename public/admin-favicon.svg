@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#E75556" rx="20"/>
+  <g fill="white" transform="translate(50, 50)">
+    <!-- Settings/Gear icon -->
+    <path d="M0,-20 L5,-17 L5,-10 L10,-8 L14,-12 L19,-9 L17,-4 L23,0 L17,4 L19,9 L14,12 L10,8 L5,10 L5,17 L0,20 L-5,17 L-5,10 L-10,8 L-14,12 L-19,9 L-17,4 L-23,0 L-17,-4 L-19,-9 L-14,-12 L-10,-8 L-5,-10 L-5,-17 Z M0,-8 A8,8 0 1,1 0,8 A8,8 0 1,1 0,-8 Z"/>
+  </g>
+</svg>

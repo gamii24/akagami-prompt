@@ -12,11 +12,25 @@ const app = new Hono<{ Bindings: Bindings }>()
 // Enable CORS
 app.use('/api/*', cors())
 
-// Serve favicon
+// Serve favicon (public site)
 app.get('/favicon.svg', (c) => {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <rect width="100" height="100" fill="#E75556" rx="20"/>
   <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">A</text>
+</svg>`;
+  return c.body(svg, 200, {
+    'Content-Type': 'image/svg+xml',
+    'Cache-Control': 'public, max-age=31536000'
+  });
+})
+
+// Serve admin favicon (admin page)
+app.get('/admin-favicon.svg', (c) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#E75556" rx="20"/>
+  <g fill="white" transform="translate(50, 50)">
+    <path d="M0,-20 L5,-17 L5,-10 L10,-8 L14,-12 L19,-9 L17,-4 L23,0 L17,4 L19,9 L14,12 L10,8 L5,10 L5,17 L0,20 L-5,17 L-5,10 L-10,8 L-14,12 L-19,9 L-17,4 L-23,0 L-17,-4 L-19,-9 L-14,-12 L-10,-8 L-5,-10 L-5,-17 Z M0,-8 A8,8 0 1,1 0,8 A8,8 0 1,1 0,-8 Z"/>
+  </g>
 </svg>`;
   return c.body(svg, 200, {
     'Content-Type': 'image/svg+xml',
@@ -1277,7 +1291,7 @@ app.get('/admin', (c) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Akagami Prompt - 管理画面</title>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        <link rel="icon" type="image/svg+xml" href="/admin-favicon.svg">
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
