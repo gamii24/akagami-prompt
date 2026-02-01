@@ -1139,13 +1139,19 @@ app.get('/', (c) => {
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
                            aria-label="Threads 1">
-                            <i class="fab fa-threads text-2xl"></i>
+                            <div class="relative">
+                                <i class="fab fa-threads text-2xl"></i>
+                                <i class="fas fa-star text-xs absolute -top-1 -right-1" style="color: #FFD700;"></i>
+                            </div>
                             <span class="text-xs">Threads 1</span>
                         </a>
                         <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
                            aria-label="Threads 2">
-                            <i class="fab fa-threads text-2xl"></i>
+                            <div class="relative">
+                                <i class="fab fa-threads text-2xl"></i>
+                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1" style="color: #4ECDC4;"></i>
+                            </div>
                             <span class="text-xs">Threads 2</span>
                         </a>
                         <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
@@ -2110,13 +2116,19 @@ app.get('/prompt/:id', async (c) => {
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
                            aria-label="Threads 1">
-                            <i class="fab fa-threads text-2xl"></i>
+                            <div class="relative">
+                                <i class="fab fa-threads text-2xl"></i>
+                                <i class="fas fa-star text-xs absolute -top-1 -right-1" style="color: #FFD700;"></i>
+                            </div>
                             <span class="text-xs">Threads 1</span>
                         </a>
                         <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
                            aria-label="Threads 2">
-                            <i class="fab fa-threads text-2xl"></i>
+                            <div class="relative">
+                                <i class="fab fa-threads text-2xl"></i>
+                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1" style="color: #4ECDC4;"></i>
+                            </div>
                             <span class="text-xs">Threads 2</span>
                         </a>
                         <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
@@ -2889,13 +2901,19 @@ app.get('/admin', (c) => {
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
                            aria-label="Threads 1">
-                            <i class="fab fa-threads text-2xl"></i>
+                            <div class="relative">
+                                <i class="fab fa-threads text-2xl"></i>
+                                <i class="fas fa-star text-xs absolute -top-1 -right-1" style="color: #FFD700;"></i>
+                            </div>
                             <span class="text-xs">Threads 1</span>
                         </a>
                         <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
                            aria-label="Threads 2">
-                            <i class="fab fa-threads text-2xl"></i>
+                            <div class="relative">
+                                <i class="fab fa-threads text-2xl"></i>
+                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1" style="color: #4ECDC4;"></i>
+                            </div>
                             <span class="text-xs">Threads 2</span>
                         </a>
                         <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
