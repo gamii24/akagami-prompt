@@ -1093,6 +1093,43 @@ app.get('/', (c) => {
           loadPrompts();
         </script>
 
+        <!-- About Section -->
+        <section class="max-w-4xl mx-auto px-4 py-16 mb-8">
+            <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 md:p-12 shadow-sm border border-pink-100">
+                <div class="text-center space-y-6">
+                    <div class="inline-block">
+                        <div class="w-16 h-1 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full mb-6 mx-auto"></div>
+                    </div>
+                    
+                    <p class="text-gray-700 leading-relaxed text-base md:text-lg">
+                        このサイトは、忙しく働く女性のための<span class="font-semibold text-pink-600">発信素材置き場</span>です。
+                    </p>
+                    
+                    <p class="text-gray-700 leading-relaxed text-base md:text-lg">
+                        考える時間がなくても、<span class="font-semibold text-purple-600">迷わず使える画像生成プロンプト</span>だけを作っています。
+                    </p>
+                    
+                    <p class="text-gray-700 leading-relaxed text-base md:text-lg">
+                        一瞬の映えより、<span class="font-semibold text-pink-600">積み重なる信頼感</span>を大切にしています。
+                    </p>
+                    
+                    <p class="text-gray-700 leading-relaxed text-base md:text-lg">
+                        発信を頑張るものではなく、<span class="font-semibold text-purple-600">生活の一部に戻す</span>ことを目指しています。
+                    </p>
+                    
+                    <div class="pt-4">
+                        <p class="text-gray-600 leading-relaxed text-sm md:text-base italic">
+                            あなたの時間と集中力を守るための、<br class="md:hidden">静かな裏方であり続けます。
+                        </p>
+                    </div>
+                    
+                    <div class="inline-block">
+                        <div class="w-16 h-1 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mt-6 mx-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Footer -->
         <footer class="accent-bg text-white py-8 mt-16">
             <div class="max-w-7xl mx-auto px-4">
