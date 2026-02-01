@@ -637,11 +637,111 @@ app.get('/prompt/:id', (c) => {
             overflow: hidden;
             border-radius: 0.5rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+          }
+          .image-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           }
           .image-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+          }
+          /* Lightbox styles */
+          .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+          }
+          .lightbox.active {
+            display: flex;
+          }
+          .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          .lightbox-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+          }
+          .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: #333;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            z-index: 10000;
+          }
+          .lightbox-close:hover {
+            background-color: var(--accent-color);
+            color: white;
+            transform: scale(1.1);
+          }
+          .lightbox-nav {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            top: 50%;
+            transform: translateY(-50%);
+          }
+          .lightbox-nav:hover {
+            background-color: var(--accent-color);
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+          }
+          .lightbox-prev {
+            left: 20px;
+          }
+          .lightbox-next {
+            right: 20px;
+          }
+          .lightbox-counter {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
           }
           .copy-btn {
             background-color: var(--accent-color);
@@ -754,10 +854,31 @@ app.get('/prompt/:id', (c) => {
             </div>
         </main>
 
+        <!-- Lightbox -->
+        <div id="lightbox" class="lightbox">
+            <button class="lightbox-close" onclick="closeLightbox()">
+                <i class="fas fa-times"></i>
+            </button>
+            <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="lightbox-content">
+                <img id="lightbox-image" class="lightbox-image" src="" alt="拡大画像">
+            </div>
+            <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="lightbox-counter">
+                <span id="lightbox-counter"></span>
+            </div>
+        </div>
+
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script>
           const promptId = ${id};
           let promptData = null;
+          let lightboxImages = [];
+          let currentLightboxIndex = 0;
 
           // Load prompt details
           async function loadPrompt() {
@@ -798,9 +919,12 @@ app.get('/prompt/:id', (c) => {
               allImages.push(...promptData.images);
             }
             
+            // Store images for lightbox
+            lightboxImages = allImages.map(img => img.image_url);
+            
             if (allImages.length > 0) {
-              imagesGrid.innerHTML = allImages.map(img => \`
-                <div class="image-item">
+              imagesGrid.innerHTML = allImages.map((img, index) => \`
+                <div class="image-item" onclick="openLightbox(\${index})">
                   <img src="\${img.image_url}" alt="生成画像" 
                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                 </div>
@@ -1060,6 +1184,58 @@ app.get('/prompt/:id', (c) => {
               } catch (error) {
                 console.error('Copy error:', error);
                 alert('コピーに失敗しました: ' + (error.message || 'Unknown error'));
+              }
+            }
+          });
+
+          // Lightbox functions
+          function openLightbox(index) {
+            currentLightboxIndex = index;
+            updateLightbox();
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+          }
+
+          function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+          }
+
+          function navigateLightbox(direction) {
+            currentLightboxIndex += direction;
+            if (currentLightboxIndex < 0) {
+              currentLightboxIndex = lightboxImages.length - 1;
+            } else if (currentLightboxIndex >= lightboxImages.length) {
+              currentLightboxIndex = 0;
+            }
+            updateLightbox();
+          }
+
+          function updateLightbox() {
+            const lightboxImage = document.getElementById('lightbox-image');
+            const lightboxCounter = document.getElementById('lightbox-counter');
+            
+            lightboxImage.src = lightboxImages[currentLightboxIndex];
+            lightboxCounter.textContent = \`\${currentLightboxIndex + 1} / \${lightboxImages.length}\`;
+          }
+
+          // Close lightbox on background click
+          document.getElementById('lightbox').addEventListener('click', function(event) {
+            if (event.target === this) {
+              closeLightbox();
+            }
+          });
+
+          // Close lightbox on ESC key
+          document.addEventListener('keydown', function(event) {
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox.classList.contains('active')) {
+              if (event.key === 'Escape') {
+                closeLightbox();
+              } else if (event.key === 'ArrowLeft') {
+                navigateLightbox(-1);
+              } else if (event.key === 'ArrowRight') {
+                navigateLightbox(1);
               }
             }
           });
