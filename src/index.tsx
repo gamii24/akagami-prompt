@@ -685,7 +685,11 @@ app.get('/prompt/:id', async (c) => {
   // OGP用のデータ準備
   const ogTitle = prompt ? `${prompt.title} | Akagami Prompt` : 'Akagami Prompt - プロンプト詳細'
   const ogDescription = prompt ? `${prompt.prompt_text.substring(0, 100)}...` : 'ビジネスシーンで使える画像生成プロンプト'
-  const ogImage = prompt?.image_url ? `https://akagami-prompt.pages.dev${prompt.image_url}` : 'https://akagami-prompt.pages.dev/ogp-image.png'
+  const ogImage = prompt?.image_url && prompt.image_url.startsWith('http') 
+    ? prompt.image_url 
+    : prompt?.image_url 
+      ? `https://akagami-prompt.pages.dev${prompt.image_url}` 
+      : 'https://akagami-prompt.pages.dev/ogp-image.png'
   const ogUrl = `https://akagami-prompt.pages.dev/prompt/${id}`
   
   return c.html(`
