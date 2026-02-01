@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "wrangler pages dev dist",
     "deploy": "npm run build && wrangler pages deploy dist",
-    "deploy:prod": "npm run build && wrangler pages deploy dist --project-name webapp",
+    "deploy:prod": "npm run build && wrangler pages deploy dist --project-name akagami-prompt",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "db:migrate:local": "wrangler d1 migrations apply webapp-production --local",
     "db:migrate:prod": "wrangler d1 migrations apply webapp-production",
