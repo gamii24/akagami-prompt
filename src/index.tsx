@@ -97,6 +97,20 @@ app.get('/api/categories', async (c) => {
   return c.json(result.results)
 })
 
+// Increment copy count
+app.post('/api/prompts/:id/copy', async (c) => {
+  const { DB } = c.env
+  const id = c.req.param('id')
+  
+  await DB.prepare(`
+    UPDATE prompts 
+    SET copy_count = copy_count + 1 
+    WHERE id = ?
+  `).bind(id).run()
+  
+  return c.json({ success: true })
+})
+
 app.get('/api/admin/prompts/:id', async (c) => {
   const { DB } = c.env
   const id = c.req.param('id')
@@ -724,6 +738,13 @@ app.get('/', (c) => {
                   textArea.select();
                   document.execCommand('copy');
                   document.body.removeChild(textArea);
+                }
+                
+                // Increment copy count
+                try {
+                  await axios.post(\`/api/prompts/\${promptId}/copy\`);
+                } catch (err) {
+                  console.error('Failed to increment copy count:', err);
                 }
                 
                 // Google Analytics event tracking
@@ -1553,6 +1574,13 @@ app.get('/prompt/:id', async (c) => {
                   document.body.removeChild(textArea);
                 }
                 
+                // Increment copy count
+                try {
+                  await axios.post(\`/api/prompts/\${promptData.id}/copy\`);
+                } catch (err) {
+                  console.error('Failed to increment copy count:', err);
+                }
+                
                 // Google Analytics event tracking
                 if (typeof gtag !== 'undefined') {
                   gtag('event', 'copy_prompt_detail', {
@@ -2047,9 +2075,14 @@ app.get('/admin', (c) => {
                 <div class="flex-1">
                   <h3 class="font-bold text-gray-800">\${prompt.title}</h3>
                   <p class="text-sm text-gray-600 line-clamp-1">\${prompt.prompt_text}</p>
-                  <span class="text-xs text-gray-500 mt-1 inline-block">
-                    <i class="fas fa-tag mr-1"></i>\${prompt.category_name}
-                  </span>
+                  <div class="flex items-center gap-3 mt-1">
+                    <span class="text-xs text-gray-500">
+                      <i class="fas fa-tag mr-1"></i>\${prompt.category_name}
+                    </span>
+                    <span class="text-xs text-gray-500">
+                      <i class="fas fa-copy mr-1"></i>コピー: <strong>\${prompt.copy_count || 0}回</strong>
+                    </span>
+                  </div>
                 </div>
                 <div class="flex gap-2">
                   <a href="/prompt/\${prompt.id}" target="_blank"
