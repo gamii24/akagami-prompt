@@ -12,11 +12,20 @@ const app = new Hono<{ Bindings: Bindings }>()
 // Enable CORS
 app.use('/api/*', cors())
 
+// Serve favicon
+app.get('/favicon.svg', (c) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#E75556" rx="20"/>
+  <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">A</text>
+</svg>`;
+  return c.body(svg, 200, {
+    'Content-Type': 'image/svg+xml',
+    'Cache-Control': 'public, max-age=31536000'
+  });
+})
+
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
-
-// Serve favicon
-app.get('/favicon.svg', serveStatic({ path: './public/favicon.svg' }))
 
 // API routes
 app.get('/api/prompts', async (c) => {
