@@ -378,12 +378,12 @@ app.get('/', (c) => {
         <meta name="twitter:image" content="https://akagami-prompt.pages.dev/ogp-image.png">
         
         <!-- Google Analytics 4 -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-K00PV68PRE"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-XXXXXXXXXX', {
+          gtag('config', 'G-K00PV68PRE', {
             page_title: 'Akagami Prompt - トップページ',
             page_location: window.location.href
           });
@@ -750,12 +750,12 @@ app.get('/prompt/:id', async (c) => {
         <meta name="twitter:image" content="${ogImage}">
         
         <!-- Google Analytics 4 -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-K00PV68PRE"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-XXXXXXXXXX', {
+          gtag('config', 'G-K00PV68PRE', {
             page_title: '${ogTitle}',
             page_location: window.location.href
           });
@@ -1451,12 +1451,12 @@ app.get('/admin', (c) => {
         <link rel="icon" type="image/svg+xml" href="/admin-favicon.svg">
         
         <!-- Google Analytics 4 -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-K00PV68PRE"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-XXXXXXXXXX', {
+          gtag('config', 'G-K00PV68PRE', {
             page_title: 'Akagami Prompt - 管理画面',
             page_location: window.location.href
           });
