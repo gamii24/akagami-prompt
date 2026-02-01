@@ -15,6 +15,9 @@ app.use('/api/*', cors())
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
 
+// Serve favicon
+app.get('/favicon.svg', serveStatic({ path: './public/favicon.svg' }))
+
 // API routes
 app.get('/api/prompts', async (c) => {
   const { DB } = c.env
