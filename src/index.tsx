@@ -438,17 +438,66 @@ app.get('/', (c) => {
               background-position: 1000px 0;
             }
           }
+          @keyframes bounce {
+            0%, 100% {
+              transform: translateY(0);
+            }
+            50% {
+              transform: translateY(-3px);
+            }
+          }
+          @keyframes wiggle {
+            0%, 100% {
+              transform: rotate(0deg);
+            }
+            25% {
+              transform: rotate(-5deg);
+            }
+            75% {
+              transform: rotate(5deg);
+            }
+          }
+          @keyframes buttonPress {
+            0% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(0.95);
+            }
+            100% {
+              transform: scale(1);
+            }
+          }
           .skeleton {
-            background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
-            background-size: 2000px 100%;
-            animation: shimmer 2s infinite linear;
+            background: linear-gradient(
+              90deg,
+              #f0f0f0 0%,
+              #f8f8f8 20%,
+              #f0f0f0 40%,
+              #f0f0f0 100%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite ease-in-out;
             border-radius: 0.5rem;
+          }
+          @keyframes shimmer {
+            0% {
+              background-position: -200% 0;
+            }
+            100% {
+              background-position: 200% 0;
+            }
           }
           .skeleton-card {
             aspect-ratio: 4/5;
             overflow: hidden;
             border-radius: 0.5rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease-out;
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
           }
           .skeleton-button {
             height: 40px;
@@ -476,18 +525,44 @@ app.get('/', (c) => {
             background: white;
             color: #6b7280;
             font-size: 0.875rem;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+          }
+          .category-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: all 0.3s;
+            transform: translateX(-50%);
           }
           .category-btn:hover {
             border-color: var(--accent-color);
             color: var(--accent-color);
+            transform: translateY(-2px);
+          }
+          .category-btn:hover::before {
+            width: 80%;
           }
           .category-btn.active {
             background-color: var(--accent-color);
             color: white;
             border-color: var(--accent-color);
+            animation: buttonPulse 0.3s ease-out;
+          }
+          .category-btn.active::before {
+            width: 0;
+          }
+          @keyframes buttonPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
           }
           .grid-container {
             display: grid;
@@ -530,6 +605,10 @@ app.get('/', (c) => {
           .grid-btn:hover {
             border-color: var(--accent-color);
             color: var(--accent-color);
+            transform: translateY(-2px);
+          }
+          .grid-btn:active {
+            animation: buttonPress 0.2s ease;
           }
           .grid-btn.active {
             background-color: var(--accent-color);
@@ -544,27 +623,54 @@ app.get('/', (c) => {
           .prompt-card {
             border-radius: 0.5rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
             background: white;
+            position: relative;
+            animation: fadeInUp 0.5s ease-out backwards;
+          }
+          .prompt-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+            pointer-events: none;
           }
           .prompt-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(233, 75, 111, 0.2);
+          }
+          .prompt-card:hover::before {
+            left: 100%;
+          }
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
           }
           .prompt-image-wrapper {
             aspect-ratio: 4/5;
             overflow: hidden;
             cursor: pointer;
+            position: relative;
           }
           .prompt-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           }
           .prompt-image-wrapper:hover .prompt-image {
-            transform: scale(1.05);
+            transform: scale(1.08);
           }
           .prompt-footer {
             padding: 0.75rem;
@@ -574,12 +680,35 @@ app.get('/', (c) => {
           }
           .copy-btn {
             background-color: var(--accent-color);
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
             font-family: 'Rounded Mplus 1c', 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'メイリオ', Meiryo, sans-serif;
+            position: relative;
+            overflow: hidden;
+          }
+          .copy-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+          }
+          .copy-btn:active::after {
+            width: 300px;
+            height: 300px;
           }
           .copy-btn:hover {
             background-color: #d04445;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          }
+          .copy-btn:active {
+            transform: scale(0.95);
           }
           /* Responsive copy button height based on grid columns */
           .cols-5 .copy-btn {
@@ -652,8 +781,8 @@ app.get('/', (c) => {
                             Akagami Prompt
                         </a>
                     </h1>
-                    <a href="/how-to-use" class="text-white hover:opacity-80 transition flex items-center">
-                        <i class="fas fa-book-open mr-2"></i>
+                    <a href="/how-to-use" class="text-white hover:opacity-80 transition flex items-center group">
+                        <i class="fas fa-book-open mr-2 group-hover:animate-[wiggle_0.5s_ease-in-out]"></i>
                         <span class="hidden sm:inline">使い方</span>
                     </a>
                 </div>
@@ -1184,31 +1313,31 @@ app.get('/', (c) => {
                     <h3 class="text-lg font-semibold">Follow Us</h3>
                     <div class="flex space-x-6">
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="Threads 1">
                             <div class="relative">
                                 <i class="fab fa-threads text-2xl"></i>
-                                <i class="fas fa-star text-xs absolute -top-1 -right-1" style="color: #FFD700;"></i>
+                                <i class="fas fa-star text-xs absolute -top-1 -right-1 animate-pulse" style="color: #FFD700;"></i>
                             </div>
                             <span class="text-xs">Threads 1</span>
                         </a>
                         <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="Threads 2">
                             <div class="relative">
                                 <i class="fab fa-threads text-2xl"></i>
-                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1" style="color: #4ECDC4;"></i>
+                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1 animate-pulse" style="color: #4ECDC4;"></i>
                             </div>
                             <span class="text-xs">Threads 2</span>
                         </a>
                         <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 hover:rotate-6 flex flex-col items-center space-y-1"
                            aria-label="Instagram">
                             <i class="fab fa-instagram text-2xl"></i>
                             <span class="text-xs">Instagram</span>
                         </a>
                         <a href="https://www.youtube.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="YouTube">
                             <i class="fab fa-youtube text-2xl"></i>
                             <span class="text-xs">YouTube</span>
@@ -1391,13 +1520,20 @@ app.get('/prompt/:id', async (c) => {
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            background-color: rgba(0, 0, 0, 0);
             z-index: 9999;
             justify-content: center;
             align-items: center;
+            transition: background-color 0.3s ease;
           }
           .lightbox.active {
             display: flex;
+            background-color: rgba(0, 0, 0, 0.95);
+            animation: fadeIn 0.3s ease;
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
           }
           .lightbox-content {
             position: relative;
@@ -1413,6 +1549,17 @@ app.get('/prompt/:id', async (c) => {
             object-fit: contain;
             border-radius: 0.5rem;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            animation: zoomIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          @keyframes zoomIn {
+            from {
+              transform: scale(0.8);
+              opacity: 0;
+            }
+            to {
+              transform: scale(1);
+              opacity: 1;
+            }
           }
           .lightbox-close {
             position: absolute;
@@ -2168,31 +2315,31 @@ app.get('/prompt/:id', async (c) => {
                     <h3 class="text-lg font-semibold">Follow Us</h3>
                     <div class="flex space-x-6">
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="Threads 1">
                             <div class="relative">
                                 <i class="fab fa-threads text-2xl"></i>
-                                <i class="fas fa-star text-xs absolute -top-1 -right-1" style="color: #FFD700;"></i>
+                                <i class="fas fa-star text-xs absolute -top-1 -right-1 animate-pulse" style="color: #FFD700;"></i>
                             </div>
                             <span class="text-xs">Threads 1</span>
                         </a>
                         <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="Threads 2">
                             <div class="relative">
                                 <i class="fab fa-threads text-2xl"></i>
-                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1" style="color: #4ECDC4;"></i>
+                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1 animate-pulse" style="color: #4ECDC4;"></i>
                             </div>
                             <span class="text-xs">Threads 2</span>
                         </a>
                         <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 hover:rotate-6 flex flex-col items-center space-y-1"
                            aria-label="Instagram">
                             <i class="fab fa-instagram text-2xl"></i>
                             <span class="text-xs">Instagram</span>
                         </a>
                         <a href="https://www.youtube.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="YouTube">
                             <i class="fab fa-youtube text-2xl"></i>
                             <span class="text-xs">YouTube</span>
@@ -2956,31 +3103,31 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                     <h3 class="text-lg font-semibold">Follow Us</h3>
                     <div class="flex space-x-6">
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="Threads 1">
                             <div class="relative">
                                 <i class="fab fa-threads text-2xl"></i>
-                                <i class="fas fa-star text-xs absolute -top-1 -right-1" style="color: #FFD700;"></i>
+                                <i class="fas fa-star text-xs absolute -top-1 -right-1 animate-pulse" style="color: #FFD700;"></i>
                             </div>
                             <span class="text-xs">Threads 1</span>
                         </a>
                         <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="Threads 2">
                             <div class="relative">
                                 <i class="fab fa-threads text-2xl"></i>
-                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1" style="color: #4ECDC4;"></i>
+                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1 animate-pulse" style="color: #4ECDC4;"></i>
                             </div>
                             <span class="text-xs">Threads 2</span>
                         </a>
                         <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 hover:rotate-6 flex flex-col items-center space-y-1"
                            aria-label="Instagram">
                             <i class="fab fa-instagram text-2xl"></i>
                             <span class="text-xs">Instagram</span>
                         </a>
                         <a href="https://www.youtube.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="YouTube">
                             <i class="fab fa-youtube text-2xl"></i>
                             <span class="text-xs">YouTube</span>
@@ -3268,31 +3415,31 @@ app.get('/how-to-use', (c) => {
                     <h3 class="text-lg font-semibold">Follow Us</h3>
                     <div class="flex space-x-6">
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="Threads 1">
                             <div class="relative">
                                 <i class="fab fa-threads text-2xl"></i>
-                                <i class="fas fa-star text-xs absolute -top-1 -right-1" style="color: #FFD700;"></i>
+                                <i class="fas fa-star text-xs absolute -top-1 -right-1 animate-pulse" style="color: #FFD700;"></i>
                             </div>
                             <span class="text-xs">Threads 1</span>
                         </a>
                         <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="Threads 2">
                             <div class="relative">
                                 <i class="fab fa-threads text-2xl"></i>
-                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1" style="color: #4ECDC4;"></i>
+                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1 animate-pulse" style="color: #4ECDC4;"></i>
                             </div>
                             <span class="text-xs">Threads 2</span>
                         </a>
                         <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 hover:rotate-6 flex flex-col items-center space-y-1"
                            aria-label="Instagram">
                             <i class="fab fa-instagram text-2xl"></i>
                             <span class="text-xs">Instagram</span>
                         </a>
                         <a href="https://www.youtube.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
-                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
                            aria-label="YouTube">
                             <i class="fab fa-youtube text-2xl"></i>
                             <span class="text-xs">YouTube</span>
