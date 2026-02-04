@@ -1524,6 +1524,13 @@ app.get('/prompt/:id', async (c) => {
                 <!-- Images Grid (4:5 ratio) -->
                 <div id="images-grid" class="image-grid mb-8"></div>
 
+                <!-- Mobile Copy Button (visible only on mobile, above prompt text) -->
+                <div class="md:hidden mb-4">
+                    <button id="copy-prompt-btn-mobile" class="copy-btn text-white w-full py-3 rounded-lg font-light">
+                        Copy
+                    </button>
+                </div>
+
                 <!-- Prompt Section -->
                 <div class="bg-gray-50 rounded-lg p-6 mb-8 shadow-sm">
                     <div class="flex items-start justify-between gap-4">
@@ -1531,7 +1538,7 @@ app.get('/prompt/:id', async (c) => {
                             <h2 class="text-lg font-bold text-gray-800 mb-3">プロンプト</h2>
                             <p id="prompt-text" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
                         </div>
-                        <button id="copy-prompt-btn" class="copy-btn-detail text-white px-6 rounded-lg font-light flex-shrink-0">
+                        <button id="copy-prompt-btn" class="copy-btn-detail text-white px-6 rounded-lg font-light flex-shrink-0 hidden md:block">
                             Copy
                         </button>
                     </div>
@@ -1970,8 +1977,8 @@ app.get('/prompt/:id', async (c) => {
 
           // Copy button event listener using event delegation
           document.addEventListener('click', async function(event) {
-            // Check if click target is the copy button or its child element
-            const copyBtn = event.target.closest('#copy-prompt-btn');
+            // Check if click target is the copy button or its child element (both desktop and mobile)
+            const copyBtn = event.target.closest('#copy-prompt-btn, #copy-prompt-btn-mobile');
             if (copyBtn) {
               event.preventDefault();
               event.stopPropagation();
