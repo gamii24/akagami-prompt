@@ -645,12 +645,18 @@ app.get('/', (c) => {
         <!-- Header -->
         <header class="accent-bg text-white py-6 shadow-md">
             <div class="max-w-7xl mx-auto px-4">
-                <h1 class="text-3xl font-bold">
-                    <a href="/" class="flex items-center hover:opacity-80 transition-opacity cursor-pointer" style="text-decoration: none; color: inherit;">
-                        <i class="fas fa-sparkles mr-2"></i>
-                        Akagami Prompt
+                <div class="flex items-center justify-between">
+                    <h1 class="text-3xl font-bold">
+                        <a href="/" class="flex items-center hover:opacity-80 transition-opacity cursor-pointer" style="text-decoration: none; color: inherit;">
+                            <i class="fas fa-sparkles mr-2"></i>
+                            Akagami Prompt
+                        </a>
+                    </h1>
+                    <a href="/how-to-use" class="text-white hover:opacity-80 transition flex items-center">
+                        <i class="fas fa-book-open mr-2"></i>
+                        <span class="hidden sm:inline">使い方</span>
                     </a>
-                </h1>
+                </div>
             </div>
         </header>
 
@@ -2892,6 +2898,318 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
           loadCategories();
           loadPrompts();
         </script>
+
+        <!-- Footer -->
+        <footer class="accent-bg text-white py-8 mt-16">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex flex-col items-center space-y-4">
+                    <h3 class="text-lg font-semibold">Follow Us</h3>
+                    <div class="flex space-x-6">
+                        <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Threads 1">
+                            <div class="relative">
+                                <i class="fab fa-threads text-2xl"></i>
+                                <i class="fas fa-star text-xs absolute -top-1 -right-1" style="color: #FFD700;"></i>
+                            </div>
+                            <span class="text-xs">Threads 1</span>
+                        </a>
+                        <a href="https://www.threads.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Threads 2">
+                            <div class="relative">
+                                <i class="fab fa-threads text-2xl"></i>
+                                <i class="fas fa-briefcase text-xs absolute -top-1 -right-1" style="color: #4ECDC4;"></i>
+                            </div>
+                            <span class="text-xs">Threads 2</span>
+                        </a>
+                        <a href="https://www.instagram.com/akagami_sns/" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="Instagram">
+                            <i class="fab fa-instagram text-2xl"></i>
+                            <span class="text-xs">Instagram</span>
+                        </a>
+                        <a href="https://www.youtube.com/@akagami_sns" target="_blank" rel="noopener noreferrer" 
+                           class="text-white hover:opacity-80 transition-opacity flex flex-col items-center space-y-1"
+                           aria-label="YouTube">
+                            <i class="fab fa-youtube text-2xl"></i>
+                            <span class="text-xs">YouTube</span>
+                        </a>
+                    </div>
+                    <p class="text-sm text-gray-200 mt-4">© 2026 Akagami Prompt. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </body>
+    </html>
+  `)
+})
+
+// How to use page
+app.get('/how-to-use', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>使い方 | Akagami Prompt</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        
+        <!-- Google Fonts - Rounded Gothic -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500&display=swap" rel="stylesheet">
+        
+        <!-- Open Graph / Facebook / Threads -->
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://akagami-prompt.pages.dev/how-to-use">
+        <meta property="og:title" content="使い方 | Akagami Prompt">
+        <meta property="og:description" content="Gemini専用・ナノバナナ対応の画像生成プロンプトの使い方を詳しく解説">
+        <meta property="og:image" content="https://akagami-prompt.pages.dev/ogp-image.png">
+        
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <style>
+          :root {
+            --accent-color: #E94B6F;
+          }
+          body {
+            font-family: 'Rounded Mplus 1c', 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'メイリオ', Meiryo, sans-serif;
+          }
+          .accent-bg {
+            background-color: var(--accent-color);
+          }
+          .accent-text {
+            color: var(--accent-color);
+          }
+          .section-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+          .step-number {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+          }
+          .check-item {
+            padding-left: 1.5rem;
+            position: relative;
+          }
+          .check-item:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+          }
+          .x-item {
+            padding-left: 1.5rem;
+            position: relative;
+          }
+          .x-item:before {
+            content: "✗";
+            position: absolute;
+            left: 0;
+            color: #ef4444;
+            font-weight: bold;
+          }
+          .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+          }
+          .tip-box {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+          }
+        </style>
+    </head>
+    <body class="bg-gray-50">
+        <!-- Header -->
+        <header class="accent-bg text-white py-4 shadow-md">
+            <div class="max-w-4xl mx-auto px-4">
+                <a href="/" class="inline-flex items-center text-white hover:opacity-80 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    トップに戻る
+                </a>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-book-open mr-2 accent-text"></i>
+                使い方
+            </h1>
+            <p class="text-gray-600 mb-8">Gemini専用・ナノバナナ対応</p>
+
+            <!-- 事前準備 -->
+            <div class="section-card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-camera mr-2 accent-text"></i>
+                    事前準備
+                </h2>
+                
+                <h3 class="text-lg font-bold text-gray-700 mb-3">必要なもの</h3>
+                <ul class="space-y-2 mb-6">
+                    <li class="check-item">顔がはっきり写っている写真を1枚用意</li>
+                    <li class="check-item">正面より少しななめから撮影したものがベスト</li>
+                    <li class="check-item">髪や輪郭が隠れていないもの</li>
+                    <li class="check-item">明るい場所で撮影された写真がベスト</li>
+                    <li class="x-item">サングラス、マスク、強い影は避ける</li>
+                </ul>
+
+                <div class="warning-box">
+                    <h4 class="font-bold mb-2">⚠️ 写真についての重要ルール</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li class="x-item">顔の形が変わるAI加工はNG</li>
+                        <li class="x-item">別人になる系フィルターもNG</li>
+                        <li class="check-item">OKなのは肌の明るさ調整、軽い美肌補正だけ</li>
+                    </ul>
+                    <p class="mt-3 text-sm font-bold">
+                        SNOWやUlikeを使う場合は<br>
+                        → 輪郭、目、鼻、口を変えない設定で<br>
+                        → 肌だけ整えるのが正解
+                    </p>
+                    <p class="mt-3 text-sm font-bold text-red-600">
+                        ここ超大事。盛るほど失敗します。悲しいけど事実です。
+                    </p>
+                </div>
+            </div>
+
+            <!-- 操作手順 -->
+            <div class="section-card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-list-ol mr-2 accent-text"></i>
+                    操作手順
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="step-number">1</div>
+                        <p class="flex-1 pt-1">Geminiを開く</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="step-number">2</div>
+                        <p class="flex-1 pt-1">左下の＋から、自分の写真を1枚アップロード</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="step-number">3</div>
+                        <p class="flex-1 pt-1">画像生成アイコン（バナナマーク）をONにする</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="step-number">4</div>
+                        <div class="flex-1">
+                            <p class="mb-2">下のプロンプトをそのまま全部コピペ</p>
+                            <p class="text-sm text-red-600 font-bold">※前後に自分の文章は足さない</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="step-number">5</div>
+                        <p class="flex-1 pt-1 font-bold">モードは必ずプロモードで生成</p>
+                    </div>
+                </div>
+
+                <div class="warning-box mt-6">
+                    <h4 class="font-bold mb-2">⚠️ モードの注意</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li class="x-item">高速モードはおすすめしません<br>
+                            <span class="text-gray-600 ml-6">→ 顔が崩れやすく、再現度も下がります</span>
+                        </li>
+                        <li class="check-item font-bold">プロモード一択です。ケチると顔が壊れます。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- うまくいく写真のコツ -->
+            <div class="section-card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-lightbulb mr-2 accent-text"></i>
+                    うまくいく写真のコツ
+                </h2>
+                
+                <ul class="space-y-3">
+                    <li class="check-item">笑顔はOK</li>
+                    <li class="text-gray-700">
+                        <span class="text-red-600 font-bold">ただし</span>目じりが極端に下がっている写真は<br>
+                        <span class="ml-6">→ 生成後の表情が固定されやすい</span>
+                    </li>
+                    <li class="check-item font-bold">
+                        一番安定するのは<br>
+                        <span class="ml-6">→ 軽く口角が上がっている自然な表情</span>
+                    </li>
+                    <li class="x-item">カメラ目線を意識して、日常の顔より目をかっぴらいているのは超NG</li>
+                </ul>
+            </div>
+
+            <!-- やってはいけない例 -->
+            <div class="section-card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-ban mr-2 text-red-600"></i>
+                    やってはいけない例
+                </h2>
+                
+                <ul class="space-y-2">
+                    <li class="x-item">画質が荒いスクショ</li>
+                    <li class="x-item">逆光で顔が暗い写真</li>
+                    <li class="x-item">既にAIで作った顔画像</li>
+                </ul>
+            </div>
+
+            <!-- よくある失敗と対処 -->
+            <div class="section-card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-tools mr-2 accent-text"></i>
+                    よくある失敗と対処
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2">❌ 顔が似ない</h4>
+                        <p class="text-gray-600 ml-6">→ 写真を変えるだけで8割解決します</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2">❌ 変に若返る</h4>
+                        <p class="text-gray-600 ml-6">→ 美肌補正を弱めた写真に差し替える</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2">❌ 髪型が勝手に変わる</h4>
+                        <p class="text-gray-600 ml-6">→ 前髪や耳が見えている写真を使う</p>
+                    </div>
+                </div>
+
+                <div class="tip-box mt-6">
+                    <h4 class="font-bold mb-2">💡 生成は何回したらいい？</h4>
+                    <p class="text-sm">
+                        別々の自分の顔写真で4回ほど生成したら、理想のものができやすい。<br>
+                        <span class="font-bold">1発で当たる方がレアです。</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- プロンプト一覧へ戻るボタン -->
+            <div class="text-center mt-8">
+                <a href="/" class="inline-block accent-bg text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                    <i class="fas fa-th mr-2"></i>
+                    プロンプト一覧を見る
+                </a>
+            </div>
+        </main>
 
         <!-- Footer -->
         <footer class="accent-bg text-white py-8 mt-16">
