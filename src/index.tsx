@@ -691,6 +691,16 @@ app.get('/', (c) => {
                     </button>
                 </div>
                 
+                <!-- Sort Options -->
+                <div class="flex items-center gap-2">
+                    <label for="sort-select" class="text-sm text-gray-600 whitespace-nowrap">並び順:</label>
+                    <select id="sort-select" onchange="changeSortOrder()" 
+                            class="px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none text-sm">
+                        <option value="newest">新着順</option>
+                        <option value="popular">人気順</option>
+                    </select>
+                </div>
+                
                 <!-- Grid Column Switcher (PC only) -->
                 <div class="grid-switcher">
                     <span class="text-sm text-gray-600">表示:</span>
@@ -851,6 +861,10 @@ app.get('/', (c) => {
               const url = category ? \`/api/prompts?category=\${encodeURIComponent(category)}\` : '/api/prompts';
               const response = await axios.get(url);
               allPrompts = response.data;
+              
+              // Apply sorting
+              sortPrompts();
+              
               renderPrompts();
             } catch (error) {
               console.error('Error loading prompts:', error);
@@ -962,6 +976,7 @@ app.get('/', (c) => {
           // Search prompts
           let searchTimeout;
           let currentCategory = '';
+          let currentSortOrder = 'newest'; // 'newest' or 'popular'
           
           function searchPrompts() {
             clearTimeout(searchTimeout);
@@ -1053,6 +1068,41 @@ app.get('/', (c) => {
                 event_label: \`\${cols}列\`,
                 value: cols
               });
+            }
+          }
+          
+          function changeSortOrder() {
+            const select = document.getElementById('sort-select');
+            currentSortOrder = select.value;
+            
+            // Sort the prompts
+            sortPrompts();
+            
+            // Re-render
+            renderPrompts();
+            
+            // Google Analytics event tracking
+            if (typeof gtag !== 'undefined') {
+              gtag('event', 'change_sort_order', {
+                event_category: 'engagement',
+                event_label: currentSortOrder === 'popular' ? '人気順' : '新着順',
+                value: currentSortOrder
+              });
+            }
+          }
+          
+          function sortPrompts() {
+            if (currentSortOrder === 'popular') {
+              // Sort by copy_count (descending), then by id (descending) for ties
+              allPrompts.sort((a, b) => {
+                if (b.copy_count !== a.copy_count) {
+                  return b.copy_count - a.copy_count;
+                }
+                return b.id - a.id;
+              });
+            } else {
+              // Sort by id (descending) - newest first
+              allPrompts.sort((a, b) => b.id - a.id);
             }
           }
           
