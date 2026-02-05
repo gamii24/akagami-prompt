@@ -1354,6 +1354,15 @@ app.get('/', (c) => {
                         </a>
                     </div>
                     <p class="text-sm text-gray-200 mt-4">© 2026 Akagami Prompt. All rights reserved.</p>
+                    
+                    <!-- Akagami.net Link -->
+                    <div class="mt-6 pt-4 border-t border-white/20">
+                        <a href="https://akagami.net" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center justify-center bg-white text-pink-600 font-semibold px-6 py-3 rounded-lg hover:bg-pink-50 transition-all duration-300 hover:scale-105 shadow-lg">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            Akagami.net で他のサービスも見る
+                        </a>
+                    </div>
                 </div>
             </div>
         </footer>
@@ -2366,6 +2375,15 @@ app.get('/prompt/:id', async (c) => {
                         </a>
                     </div>
                     <p class="text-sm text-gray-200 mt-4">© 2026 Akagami Prompt. All rights reserved.</p>
+                    
+                    <!-- Akagami.net Link -->
+                    <div class="mt-6 pt-4 border-t border-white/20">
+                        <a href="https://akagami.net" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center justify-center bg-white text-pink-600 font-semibold px-6 py-3 rounded-lg hover:bg-pink-50 transition-all duration-300 hover:scale-105 shadow-lg">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            Akagami.net で他のサービスも見る
+                        </a>
+                    </div>
                 </div>
             </div>
         </footer>
@@ -3164,6 +3182,15 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                         </a>
                     </div>
                     <p class="text-sm text-gray-200 mt-4">© 2026 Akagami Prompt. All rights reserved.</p>
+                    
+                    <!-- Akagami.net Link -->
+                    <div class="mt-6 pt-4 border-t border-white/20">
+                        <a href="https://akagami.net" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center justify-center bg-white text-pink-600 font-semibold px-6 py-3 rounded-lg hover:bg-pink-50 transition-all duration-300 hover:scale-105 shadow-lg">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            Akagami.net で他のサービスも見る
+                        </a>
+                    </div>
                 </div>
             </div>
         </footer>
@@ -3476,6 +3503,15 @@ app.get('/how-to-use', (c) => {
                         </a>
                     </div>
                     <p class="text-sm text-gray-200 mt-4">© 2026 Akagami Prompt. All rights reserved.</p>
+                    
+                    <!-- Akagami.net Link -->
+                    <div class="mt-6 pt-4 border-t border-white/20">
+                        <a href="https://akagami.net" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center justify-center bg-white text-pink-600 font-semibold px-6 py-3 rounded-lg hover:bg-pink-50 transition-all duration-300 hover:scale-105 shadow-lg">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            Akagami.net で他のサービスも見る
+                        </a>
+                    </div>
                 </div>
             </div>
         </footer>
