@@ -3354,7 +3354,7 @@ app.get('/how-to-use', (c) => {
     </head>
     <body class="bg-gray-50">
         <!-- Header -->
-        <header class="accent-bg text-white py-6 shadow-md">
+        <header class="text-white py-6 shadow-md" style="background-color: #F25C69;">
             <div class="max-w-4xl mx-auto px-4">
                 <a href="/" class="inline-flex items-center text-white hover:opacity-80 transition">
                     <i class="fas fa-arrow-left mr-2"></i>
@@ -3524,7 +3524,7 @@ app.get('/how-to-use', (c) => {
         </main>
 
         <!-- Footer -->
-        <footer class="accent-bg text-white py-8 mt-16">
+        <footer class="text-white py-8 mt-16" style="background-color: #F25C69;">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="flex flex-col items-center space-y-4">
                     <h3 class="text-lg font-semibold">Follow Me</h3>
