@@ -1310,7 +1310,7 @@ app.get('/', (c) => {
         <footer class="accent-bg text-white py-8 mt-16">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="flex flex-col items-center space-y-4">
-                    <h3 class="text-lg font-semibold">Follow Us</h3>
+                    <h3 class="text-lg font-semibold">Follow Me</h3>
                     <div class="flex space-x-6">
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
@@ -2312,7 +2312,7 @@ app.get('/prompt/:id', async (c) => {
         <footer class="accent-bg text-white py-8 mt-16">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="flex flex-col items-center space-y-4">
-                    <h3 class="text-lg font-semibold">Follow Us</h3>
+                    <h3 class="text-lg font-semibold">Follow Me</h3>
                     <div class="flex space-x-6">
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
@@ -3100,7 +3100,7 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
         <footer class="accent-bg text-white py-8 mt-16">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="flex flex-col items-center space-y-4">
-                    <h3 class="text-lg font-semibold">Follow Us</h3>
+                    <h3 class="text-lg font-semibold">Follow Me</h3>
                     <div class="flex space-x-6">
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
@@ -3412,7 +3412,7 @@ app.get('/how-to-use', (c) => {
         <footer class="accent-bg text-white py-8 mt-16">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="flex flex-col items-center space-y-4">
-                    <h3 class="text-lg font-semibold">Follow Us</h3>
+                    <h3 class="text-lg font-semibold">Follow Me</h3>
                     <div class="flex space-x-6">
                         <a href="https://www.threads.com/@akagami0124" target="_blank" rel="noopener noreferrer" 
                            class="text-white hover:opacity-80 transition-all duration-300 hover:scale-110 flex flex-col items-center space-y-1"
