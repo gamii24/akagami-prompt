@@ -74,6 +74,7 @@ app.use('/static/*', serveStatic({ root: './public' }))
 app.get('/api/prompts', async (c) => {
   const { DB } = c.env
   const category = c.req.query('category')
+  const forMen = c.req.query('for_men')
   
   let query = `
     SELECT p.*, c.name as category_name 
@@ -81,13 +82,28 @@ app.get('/api/prompts', async (c) => {
     LEFT JOIN categories c ON p.category_id = c.id
   `
   
+  const conditions = []
+  const bindings = []
+  
   if (category) {
-    query += ` WHERE c.name = ?`
-    const result = await DB.prepare(query).bind(category).all()
-    return c.json(result.results)
+    conditions.push('c.name = ?')
+    bindings.push(category)
   }
   
-  const result = await DB.prepare(query + ' ORDER BY p.created_at DESC').all()
+  if (forMen === 'true') {
+    conditions.push('p.for_men = 1')
+  }
+  
+  if (conditions.length > 0) {
+    query += ' WHERE ' + conditions.join(' AND ')
+  }
+  
+  query += ' ORDER BY p.created_at DESC'
+  
+  const result = bindings.length > 0 
+    ? await DB.prepare(query).bind(...bindings).all()
+    : await DB.prepare(query).all()
+  
   return c.json(result.results)
 })
 
@@ -913,6 +929,9 @@ app.get('/', (c) => {
                     すべて
                 </button>
                 <div id="category-buttons" style="display: contents;"></div>
+                <button onclick="toggleForMenFilter()" id="for-men-filter-btn" class="category-btn" style="background: #3B82F6; margin-left: 8px;">
+                    <i class="fas fa-male mr-1"></i>男性向け
+                </button>
             </div>
         </div>
         
@@ -1181,6 +1200,7 @@ app.get('/', (c) => {
               <div class="prompt-card">
                 <div class="prompt-image-wrapper" onclick="location.href='/prompt/\${prompt.id}'">
                   <img src="\${prompt.image_url}" alt="\${prompt.title}" class="prompt-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                  \${prompt.for_men ? '<div class="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow-lg"><i class="fas fa-male mr-1"></i>男性向け</div>' : ''}
                 </div>
                 <div class="prompt-footer">
                   <button class="copy-btn text-white px-4 rounded text-sm font-light" data-prompt-id="\${prompt.id}">
@@ -1262,6 +1282,52 @@ app.get('/', (c) => {
           let searchTimeout;
           let currentCategory = '';
           let currentSortOrder = 'newest'; // 'newest' or 'popular'
+          let forMenFilterActive = false; // 男性向けフィルター状態
+          
+          function toggleForMenFilter() {
+            forMenFilterActive = !forMenFilterActive;
+            const btn = document.getElementById('for-men-filter-btn');
+            
+            if (forMenFilterActive) {
+              btn.classList.add('active');
+            } else {
+              btn.classList.remove('active');
+            }
+            
+            // フィルター適用
+            applyFilters();
+            
+            // Google Analytics tracking
+            if (typeof gtag !== 'undefined') {
+              gtag('event', 'toggle_for_men_filter', {
+                event_category: 'engagement',
+                event_label: forMenFilterActive ? 'on' : 'off'
+              });
+            }
+          }
+          
+          function applyFilters() {
+            let filtered = allPrompts;
+            
+            // カテゴリフィルター
+            if (currentCategory) {
+              filtered = filtered.filter(p => p.category_id == currentCategory);
+            }
+            
+            // 男性向けフィルター
+            if (forMenFilterActive) {
+              filtered = filtered.filter(p => p.for_men);
+            }
+            
+            // ソート
+            if (currentSortOrder === 'popular') {
+              filtered = filtered.sort((a, b) => (b.copy_count || 0) - (a.copy_count || 0));
+            } else {
+              filtered = filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            }
+            
+            renderPrompts(filtered);
+          }
           
           function searchPrompts() {
             clearTimeout(searchTimeout);
@@ -1360,12 +1426,6 @@ app.get('/', (c) => {
             const select = document.getElementById('sort-select');
             currentSortOrder = select.value;
             
-            // Sort the prompts
-            sortPrompts();
-            
-            // Re-render
-            renderPrompts();
-            
             // Google Analytics event tracking
             if (typeof gtag !== 'undefined') {
               gtag('event', 'change_sort_order', {
@@ -1374,6 +1434,8 @@ app.get('/', (c) => {
                 value: currentSortOrder
               });
             }
+            
+            applyFilters();
           }
           
           function sortPrompts() {
@@ -1401,8 +1463,8 @@ app.get('/', (c) => {
           
           // Filter by category
           function filterCategory(category) {
-            // Update active button
-            document.querySelectorAll('.category-btn').forEach(btn => {
+            // Update active button (男性向けボタン以外)
+            document.querySelectorAll('.category-btn:not(#for-men-filter-btn)').forEach(btn => {
               btn.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
@@ -1426,7 +1488,7 @@ app.get('/', (c) => {
               });
             }
             
-            loadPrompts(category);
+            applyFilters();
           }
 
           // Initialize
@@ -1898,7 +1960,12 @@ app.get('/prompt/:id', async (c) => {
             <!-- Content -->
             <div id="content" class="hidden">
                 <!-- Title -->
-                <h1 id="prompt-title" class="text-3xl font-bold text-gray-800 mb-6"></h1>
+                <div class="mb-6">
+                    <h1 id="prompt-title" class="text-3xl font-bold text-gray-800 mb-2"></h1>
+                    <div id="for-men-badge" class="hidden inline-flex items-center bg-blue-500 text-white text-sm px-3 py-1 rounded-full">
+                        <i class="fas fa-male mr-1"></i>男性向け
+                    </div>
+                </div>
 
                 <!-- Images Grid (4:5 ratio) -->
                 <div id="images-grid" class="image-grid mb-8"></div>
@@ -2087,6 +2154,14 @@ app.get('/prompt/:id', async (c) => {
           function renderPrompt() {
             // Title
             document.getElementById('prompt-title').textContent = promptData.title;
+            
+            // Show for-men badge if applicable
+            const forMenBadge = document.getElementById('for-men-badge');
+            if (promptData.for_men) {
+              forMenBadge.classList.remove('hidden');
+            } else {
+              forMenBadge.classList.add('hidden');
+            }
 
             // Images grid
             const imagesGrid = document.getElementById('images-grid');
@@ -2447,6 +2522,17 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                             </select>
                         </div>
                         <div>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="prompt-for-men"
+                                    class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <span class="text-sm font-medium text-gray-700">
+                                    <i class="fas fa-male mr-1 text-blue-600"></i>
+                                    男性にも使えるプロンプト
+                                </span>
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1 ml-7">チェックすると男性向けフィルターで表示されます</p>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">プロンプト本文</label>
                             <textarea id="prompt-text" rows="6" required
                                 class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
@@ -2773,7 +2859,10 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                   class="w-20 h-20 object-cover rounded"
                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E'">
                 <div class="flex-1">
-                  <h3 class="font-bold text-gray-800">\${prompt.title}</h3>
+                  <div class="flex items-center gap-2 mb-1">
+                    <h3 class="font-bold text-gray-800">\${prompt.title}</h3>
+                    \${prompt.for_men ? '<span class="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full"><i class="fas fa-male mr-1"></i>男性向け</span>' : ''}
+                  </div>
                   <p class="text-sm text-gray-600 line-clamp-1">\${prompt.prompt_text}</p>
                   <div class="flex items-center gap-3 mt-1">
                     <span class="text-xs text-gray-500">
@@ -2829,6 +2918,7 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
               document.getElementById('prompt-category').value = prompt.category_id;
               document.getElementById('prompt-text').value = prompt.prompt_text;
               document.getElementById('prompt-thumbnail').value = prompt.image_url;
+              document.getElementById('prompt-for-men').checked = prompt.for_men || false;
 
               // Show thumbnail preview
               if (prompt.image_url) {
@@ -2867,6 +2957,7 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
           function cancelEdit() {
             document.getElementById('prompt-form').reset();
             document.getElementById('prompt-id').value = '';
+            document.getElementById('prompt-for-men').checked = false;
             document.getElementById('thumbnail-preview').classList.add('hidden');
             
             // Clear detail image previews
@@ -3060,6 +3151,7 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
             const categoryId = document.getElementById('prompt-category').value;
             const promptText = document.getElementById('prompt-text').value.trim();
             const thumbnail = document.getElementById('prompt-thumbnail').value.trim();
+            const forMen = document.getElementById('prompt-for-men').checked;
 
             if (!title || !categoryId || !promptText || !thumbnail) {
               alert('すべての必須項目を入力してください');
@@ -3083,7 +3175,8 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                   category_id: parseInt(categoryId),
                   prompt_text: promptText,
                   image_url: thumbnail,
-                  image_urls: imageUrls
+                  image_urls: imageUrls,
+                  for_men: forMen
                 });
                 alert('プロンプトを更新しました');
               } else {
@@ -3093,7 +3186,8 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                   category_id: parseInt(categoryId),
                   prompt_text: promptText,
                   image_url: thumbnail,
-                  image_urls: imageUrls
+                  image_urls: imageUrls,
+                  for_men: forMen
                 });
                 alert('プロンプトを追加しました');
               }
