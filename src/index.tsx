@@ -1288,15 +1288,15 @@ app.get('/', (c) => {
                     </div>
                     
                     <p class="text-gray-700 leading-relaxed text-base md:text-lg">
-                        このサイトは、忙しく働く女性のための<span class="font-semibold text-pink-600">発信素材置き場</span>です。
+                        <span class="font-semibold text-pink-600">楽して時短して画像をつくろう！</span>
                     </p>
                     
                     <p class="text-gray-700 leading-relaxed text-base md:text-lg">
-                        考える時間がなくても、<span class="font-semibold text-purple-600">迷わず使える画像生成プロンプト</span>だけを作っています。
+                        考える時間がなくても、
                     </p>
                     
                     <p class="text-gray-700 leading-relaxed text-base md:text-lg">
-                        一瞬の映えより、<span class="font-semibold text-pink-600">積み重なる信頼感</span>を大切にしています。
+                        <span class="font-semibold text-purple-600">迷わず使える画像生成プロンプト</span>を配布！
                     </p>
                     
                     <div class="inline-block">
