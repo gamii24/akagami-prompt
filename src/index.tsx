@@ -730,6 +730,53 @@ app.get('/', (c) => {
             }
           }
           
+          /* Speech bubble for copy feedback */
+          .speech-bubble {
+            position: fixed;
+            background: white;
+            color: #374151;
+            padding: 12px 20px;
+            border-radius: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 14px;
+            font-weight: 500;
+            pointer-events: none;
+            z-index: 10000;
+            animation: bubble-float 2s ease-out forwards;
+            white-space: nowrap;
+          }
+          .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid white;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.1));
+          }
+          @keyframes bubble-float {
+            0% {
+              opacity: 0;
+              transform: translateY(20px) scale(0.8);
+            }
+            10% {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+            90% {
+              opacity: 1;
+              transform: translateY(-30px) scale(1);
+            }
+            100% {
+              opacity: 0;
+              transform: translateY(-50px) scale(0.9);
+            }
+          }
+          
           /* Sparkle effect for copy button */
           .sparkle-container {
             position: fixed;
@@ -878,6 +925,39 @@ app.get('/', (c) => {
         <script>
           let allPrompts = [];
           let categories = [];
+          
+          // Create speech bubble with random message
+          function createSpeechBubble(x, y) {
+            const messages = [
+              'ありがとう',
+              '楽しんで',
+              'AIって最高',
+              'いいね！',
+              '素敵✨',
+              'やったね',
+              'うれしい',
+              'ナイス',
+              '最高',
+              'グッド👍',
+              '応援してる',
+              'がんばって'
+            ];
+            
+            const message = messages[Math.floor(Math.random() * messages.length)];
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'speech-bubble';
+            bubble.textContent = message;
+            bubble.style.left = x + 'px';
+            bubble.style.top = (y - 60) + 'px';
+            bubble.style.transform = 'translateX(-50%)';
+            
+            document.body.appendChild(bubble);
+            
+            setTimeout(() => {
+              bubble.remove();
+            }, 2000);
+          }
           
           // Create sparkle effect
           function createSparkleEffect(x, y) {
@@ -1099,6 +1179,7 @@ app.get('/', (c) => {
                 const x = rect.left + rect.width / 2;
                 const y = rect.top + rect.height / 2;
                 createSparkleEffect(x, y);
+                createSpeechBubble(x, y);
                 
                 const originalHTML = copyBtn.innerHTML;
                 copyBtn.innerHTML = 'Copied!';
@@ -1804,6 +1885,39 @@ app.get('/prompt/:id', async (c) => {
           let lightboxImages = [];
           let currentLightboxIndex = 0;
 
+          // Create speech bubble with random message
+          function createSpeechBubble(x, y) {
+            const messages = [
+              'ありがとう',
+              '楽しんで',
+              'AIって最高',
+              'いいね！',
+              '素敵✨',
+              'やったね',
+              'うれしい',
+              'ナイス',
+              '最高',
+              'グッド👍',
+              '応援してる',
+              'がんばって'
+            ];
+            
+            const message = messages[Math.floor(Math.random() * messages.length)];
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'speech-bubble';
+            bubble.textContent = message;
+            bubble.style.left = x + 'px';
+            bubble.style.top = (y - 60) + 'px';
+            bubble.style.transform = 'translateX(-50%)';
+            
+            document.body.appendChild(bubble);
+            
+            setTimeout(() => {
+              bubble.remove();
+            }, 2000);
+          }
+
           // Create sparkle effect
           function createSparkleEffect(x, y) {
             const container = document.createElement('div');
@@ -2003,6 +2117,7 @@ app.get('/prompt/:id', async (c) => {
                 const x = rect.left + rect.width / 2;
                 const y = rect.top + rect.height / 2;
                 createSparkleEffect(x, y);
+                createSpeechBubble(x, y);
                 
                 // Update button UI
                 const originalHTML = copyBtn.innerHTML;
