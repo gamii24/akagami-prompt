@@ -789,6 +789,16 @@ app.get('/', (c) => {
             </div>
         </header>
 
+        <!-- Mobile How-to Link (visible only on mobile) -->
+        <div class="md:hidden bg-gray-50 border-b border-gray-200 py-2">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <a href="/how-to-use" class="text-sm text-gray-600 hover:text-pink-600 transition inline-flex items-center justify-center">
+                    <i class="fas fa-book-open text-xs mr-1"></i>
+                    使い方はこちら
+                </a>
+            </div>
+        </div>
+
         <!-- Category Filter -->
         <div class="max-w-7xl mx-auto px-4 py-4">
             <div class="category-scroll">
@@ -1701,6 +1711,16 @@ app.get('/prompt/:id', async (c) => {
             </div>
         </header>
 
+        <!-- Mobile How-to Link (visible only on mobile) -->
+        <div class="md:hidden bg-gray-50 border-b border-gray-200 py-2">
+            <div class="max-w-6xl mx-auto px-4 text-center">
+                <a href="/how-to-use" class="text-sm text-gray-600 hover:text-pink-600 transition inline-flex items-center justify-center">
+                    <i class="fas fa-book-open text-xs mr-1"></i>
+                    使い方はこちら
+                </a>
+            </div>
+        </div>
+
         <main class="max-w-6xl mx-auto px-4 py-8">
             <!-- Loading Skeleton -->
             <div id="loading">
@@ -2429,6 +2449,16 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                 </div>
             </div>
         </header>
+
+        <!-- Mobile How-to Link (visible only on mobile) -->
+        <div class="md:hidden bg-gray-50 border-b border-gray-200 py-2">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <a href="/how-to-use" class="text-sm text-gray-600 hover:text-pink-600 transition inline-flex items-center justify-center">
+                    <i class="fas fa-book-open text-xs mr-1"></i>
+                    使い方はこちら
+                </a>
+            </div>
+        </div>
 
         <!-- Tabs -->
         <div class="max-w-7xl mx-auto px-4 py-6">
