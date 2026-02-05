@@ -1962,7 +1962,7 @@ app.get('/prompt/:id', async (c) => {
                 <!-- Title -->
                 <div class="mb-6">
                     <h1 id="prompt-title" class="text-3xl font-bold text-gray-800 mb-2"></h1>
-                    <div id="for-men-badge" class="hidden inline-flex items-center bg-cyan-400 text-white text-sm px-3 py-1 rounded-full">
+                    <div id="for-men-badge" class="hidden inline-flex items-center text-white text-sm px-3 py-1 rounded-full" style="background: #3B82F6;">
                         <i class="fas fa-heart mr-1"></i>男性も使用可
                     </div>
                 </div>
