@@ -1200,7 +1200,7 @@ app.get('/', (c) => {
               <div class="prompt-card">
                 <div class="prompt-image-wrapper" onclick="location.href='/prompt/\${prompt.id}'">
                   <img src="\${prompt.image_url}" alt="\${prompt.title}" class="prompt-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                  \${prompt.for_men ? '<div class="absolute top-2 right-2 bg-cyan-400 text-white text-lg" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);"><i class="fas fa-heart"></i></div>' : ''}
+                  \${prompt.for_men ? '<div class="absolute top-2 right-2 text-white text-lg" style="color: #3B82F6; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"><i class="fas fa-heart"></i></div>' : ''}
                 </div>
                 <div class="prompt-footer">
                   <button class="copy-btn text-white px-4 rounded text-sm font-light" data-prompt-id="\${prompt.id}">
