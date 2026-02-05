@@ -111,6 +111,66 @@ app.post('/api/prompts/:id/copy', async (c) => {
   return c.json({ success: true })
 })
 
+// API: Get active speech bubble messages
+app.get('/api/speech-bubble-messages', async (c) => {
+  const { DB } = c.env
+  const result = await DB.prepare(`
+    SELECT message 
+    FROM speech_bubble_messages 
+    WHERE is_active = 1 
+    ORDER BY display_order
+  `).all()
+  return c.json(result.results.map(r => r.message))
+})
+
+// Admin API - Get all speech bubble messages
+app.get('/api/admin-51adc6a8e924b23431240a1156034bae/speech-messages', async (c) => {
+  const { DB } = c.env
+  const result = await DB.prepare(`
+    SELECT * FROM speech_bubble_messages 
+    ORDER BY display_order, id
+  `).all()
+  return c.json(result.results)
+})
+
+// Admin API - Create speech bubble message
+app.post('/api/admin-51adc6a8e924b23431240a1156034bae/speech-messages', async (c) => {
+  const { DB } = c.env
+  const { message } = await c.req.json()
+  
+  const result = await DB.prepare(`
+    INSERT INTO speech_bubble_messages (message, display_order)
+    VALUES (?, (SELECT COALESCE(MAX(display_order), 0) + 1 FROM speech_bubble_messages))
+  `).bind(message).run()
+  
+  return c.json({ success: true, id: result.meta.last_row_id })
+})
+
+// Admin API - Update speech bubble message
+app.put('/api/admin-51adc6a8e924b23431240a1156034bae/speech-messages/:id', async (c) => {
+  const { DB } = c.env
+  const id = c.req.param('id')
+  const { message, is_active, display_order } = await c.req.json()
+  
+  await DB.prepare(`
+    UPDATE speech_bubble_messages 
+    SET message = ?, is_active = ?, display_order = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).bind(message, is_active ? 1 : 0, display_order, id).run()
+  
+  return c.json({ success: true })
+})
+
+// Admin API - Delete speech bubble message
+app.delete('/api/admin-51adc6a8e924b23431240a1156034bae/speech-messages/:id', async (c) => {
+  const { DB } = c.env
+  const id = c.req.param('id')
+  
+  await DB.prepare('DELETE FROM speech_bubble_messages WHERE id = ?').bind(id).run()
+  
+  return c.json({ success: true })
+})
+
 // Admin API - Get prompt by ID
 app.get('/api/admin-51adc6a8e924b23431240a1156034bae/prompts/:id', async (c) => {
   const { DB } = c.env
@@ -925,25 +985,30 @@ app.get('/', (c) => {
         <script>
           let allPrompts = [];
           let categories = [];
+          let speechBubbleMessages = []; // Messages loaded from API
+          
+          // Load speech bubble messages from API
+          async function loadSpeechBubbleMessages() {
+            try {
+              const response = await axios.get('/api/speech-bubble-messages');
+              speechBubbleMessages = response.data;
+              // Fallback to default if no messages
+              if (speechBubbleMessages.length === 0) {
+                speechBubbleMessages = ['ありがとう', '楽しんで', 'AIって最高'];
+              }
+            } catch (error) {
+              console.error('Failed to load speech bubble messages:', error);
+              speechBubbleMessages = ['ありがとう', '楽しんで', 'AIって最高'];
+            }
+          }
           
           // Create speech bubble with random message
           function createSpeechBubble(x, y) {
-            const messages = [
-              'ありがとう',
-              '楽しんで',
-              'AIって最高',
-              'いいね！',
-              '素敵✨',
-              'やったね',
-              'うれしい',
-              'ナイス',
-              '最高',
-              'グッド👍',
-              '応援してる',
-              'がんばって'
-            ];
+            if (speechBubbleMessages.length === 0) {
+              return; // No messages available
+            }
             
-            const message = messages[Math.floor(Math.random() * messages.length)];
+            const message = speechBubbleMessages[Math.floor(Math.random() * speechBubbleMessages.length)];
             
             const bubble = document.createElement('div');
             bubble.className = 'speech-bubble';
@@ -1366,6 +1431,7 @@ app.get('/', (c) => {
 
           // Initialize
           loadGridPreference();
+          loadSpeechBubbleMessages();
           loadCategories();
           loadPrompts();
         </script>
@@ -1884,25 +1950,29 @@ app.get('/prompt/:id', async (c) => {
           let promptData = null;
           let lightboxImages = [];
           let currentLightboxIndex = 0;
+          let speechBubbleMessages = []; // Messages loaded from API
+
+          // Load speech bubble messages from API
+          async function loadSpeechBubbleMessages() {
+            try {
+              const response = await axios.get('/api/speech-bubble-messages');
+              speechBubbleMessages = response.data;
+              if (speechBubbleMessages.length === 0) {
+                speechBubbleMessages = ['ありがとう', '楽しんで', 'AIって最高'];
+              }
+            } catch (error) {
+              console.error('Failed to load speech bubble messages:', error);
+              speechBubbleMessages = ['ありがとう', '楽しんで', 'AIって最高'];
+            }
+          }
 
           // Create speech bubble with random message
           function createSpeechBubble(x, y) {
-            const messages = [
-              'ありがとう',
-              '楽しんで',
-              'AIって最高',
-              'いいね！',
-              '素敵✨',
-              'やったね',
-              'うれしい',
-              'ナイス',
-              '最高',
-              'グッド👍',
-              '応援してる',
-              'がんばって'
-            ];
+            if (speechBubbleMessages.length === 0) {
+              return;
+            }
             
-            const message = messages[Math.floor(Math.random() * messages.length)];
+            const message = speechBubbleMessages[Math.floor(Math.random() * speechBubbleMessages.length)];
             
             const bubble = document.createElement('div');
             bubble.className = 'speech-bubble';
@@ -2194,6 +2264,7 @@ app.get('/prompt/:id', async (c) => {
           });
 
           // Initialize
+          loadSpeechBubbleMessages();
           loadPrompt();
         </script>
 
@@ -2347,6 +2418,9 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                 <button onclick="switchTab('categories')" class="tab-btn px-6 py-3 font-medium transition rounded-t-lg text-gray-600 hover:bg-gray-100" id="tab-categories">
                     <i class="fas fa-tags mr-2"></i>カテゴリ管理
                 </button>
+                <button onclick="switchTab('messages')" class="tab-btn px-6 py-3 font-medium transition rounded-t-lg text-gray-600 hover:bg-gray-100" id="tab-messages">
+                    <i class="fas fa-comment-dots mr-2"></i>吹き出しメッセージ
+                </button>
             </div>
 
             <!-- Prompts Tab -->
@@ -2493,6 +2567,39 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                         登録済みカテゴリ
                     </h2>
                     <div id="categories-list" class="space-y-3">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                            <p class="mt-2">読み込み中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speech Messages Tab -->
+            <div id="content-messages" class="tab-content hidden">
+                <!-- Add Message Form -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-plus-circle mr-2 accent-text"></i>
+                        メッセージ追加
+                    </h2>
+                    <form id="message-form" class="flex gap-3">
+                        <input type="text" id="message-text" required
+                            class="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-accent-color focus:outline-none"
+                            placeholder="吹き出しメッセージを入力（例: ありがとう）">
+                        <button type="submit" class="submit-btn text-white px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-plus mr-2"></i>追加
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Messages List -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-list mr-2 accent-text"></i>
+                        登録済みメッセージ
+                    </h2>
+                    <div id="messages-list" class="space-y-3">
                         <div class="text-center py-8 text-gray-500">
                             <i class="fas fa-spinner fa-spin text-2xl"></i>
                             <p class="mt-2">読み込み中...</p>
@@ -2999,9 +3106,100 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
             }
           });
 
+          // Speech Bubble Messages Management
+          let speechMessages = [];
+
+          async function loadSpeechMessages() {
+            try {
+              const response = await axios.get(\`\${ADMIN_API_BASE}/speech-messages\`);
+              speechMessages = response.data;
+              renderSpeechMessages();
+            } catch (error) {
+              console.error('Error loading speech messages:', error);
+            }
+          }
+
+          function renderSpeechMessages() {
+            const list = document.getElementById('messages-list');
+            
+            if (speechMessages.length === 0) {
+              list.innerHTML = '<p class="text-gray-500 text-center py-8">メッセージがありません</p>';
+              return;
+            }
+
+            list.innerHTML = speechMessages.map(msg => \`
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <div class="flex items-center gap-4 flex-1">
+                  <div class="speech-bubble-preview bg-white px-4 py-2 rounded-full shadow text-sm">
+                    \${msg.message}
+                  </div>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" \${msg.is_active ? 'checked' : ''} 
+                      onchange="toggleMessageActive(\${msg.id}, this.checked)"
+                      class="w-4 h-4 accent-color rounded">
+                    <span class="text-sm text-gray-600">有効</span>
+                  </label>
+                </div>
+                <button onclick="deleteSpeechMessage(\${msg.id})" 
+                  class="text-red-600 hover:text-red-800 px-3 py-2 rounded hover:bg-red-50 transition">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            \`).join('');
+          }
+
+          document.getElementById('message-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageText = document.getElementById('message-text').value.trim();
+
+            if (!messageText) {
+              alert('メッセージを入力してください');
+              return;
+            }
+
+            try {
+              await axios.post(\`\${ADMIN_API_BASE}/speech-messages\`, { message: messageText });
+              document.getElementById('message-form').reset();
+              await loadSpeechMessages();
+              alert('メッセージを追加しました！');
+            } catch (error) {
+              console.error('Error adding message:', error);
+              alert('追加に失敗しました');
+            }
+          });
+
+          async function toggleMessageActive(id, isActive) {
+            try {
+              const message = speechMessages.find(m => m.id === id);
+              await axios.put(\`\${ADMIN_API_BASE}/speech-messages/\${id}\`, {
+                message: message.message,
+                is_active: isActive,
+                display_order: message.display_order
+              });
+              await loadSpeechMessages();
+            } catch (error) {
+              console.error('Error updating message:', error);
+              alert('更新に失敗しました');
+            }
+          }
+
+          async function deleteSpeechMessage(id) {
+            if (!confirm('このメッセージを削除しますか？')) return;
+
+            try {
+              await axios.delete(\`\${ADMIN_API_BASE}/speech-messages/\${id}\`);
+              await loadSpeechMessages();
+              alert('メッセージを削除しました');
+            } catch (error) {
+              console.error('Error deleting message:', error);
+              alert('削除に失敗しました');
+            }
+          }
+
           // Initialize
           loadCategories();
           loadPrompts();
+          loadSpeechMessages();
         </script>
 
         <!-- Footer -->
