@@ -1203,7 +1203,7 @@ app.get('/', (c) => {
                   \${prompt.for_men ? '<div class="absolute top-2 right-2 text-white text-lg" style="color: #3B82F6; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"><i class="fas fa-heart"></i></div>' : ''}
                 </div>
                 <div class="prompt-footer">
-                  <button class="copy-btn text-white px-4 rounded text-sm font-light" data-prompt-id="\${prompt.id}">
+                  <button class="copy-btn text-white px-4 rounded text-sm font-semibold uppercase" data-prompt-id="\${prompt.id}">
                     Copy
                   </button>
                 </div>
@@ -1972,7 +1972,7 @@ app.get('/prompt/:id', async (c) => {
 
                 <!-- Mobile Copy Button (visible only on mobile, above prompt text) -->
                 <div class="md:hidden mb-4">
-                    <button id="copy-prompt-btn-mobile" class="copy-btn text-white w-full py-3 rounded-lg font-light">
+                    <button id="copy-prompt-btn-mobile" class="copy-btn text-white w-full py-3 rounded-lg font-semibold uppercase">
                         Copy
                     </button>
                 </div>
@@ -1984,7 +1984,7 @@ app.get('/prompt/:id', async (c) => {
                             <h2 class="text-lg font-bold text-gray-800 mb-3">プロンプト</h2>
                             <p id="prompt-text" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
                         </div>
-                        <button id="copy-prompt-btn" class="copy-btn-detail text-white px-6 rounded-lg font-light flex-shrink-0 hidden md:block">
+                        <button id="copy-prompt-btn" class="copy-btn-detail text-white px-6 rounded-lg font-semibold uppercase flex-shrink-0 hidden md:block">
                             Copy
                         </button>
                     </div>
