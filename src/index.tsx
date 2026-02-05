@@ -318,7 +318,7 @@ app.delete('/api/admin-51adc6a8e924b23431240a1156034bae/categories/:id', async (
 // Admin API - Prompts
 app.post('/api/admin-51adc6a8e924b23431240a1156034bae/prompts', async (c) => {
   const { DB } = c.env
-  const { title, prompt_text, category_id, image_url, image_urls } = await c.req.json()
+  const { title, prompt_text, category_id, image_url, image_urls, for_men } = await c.req.json()
   
   if (!title || !prompt_text || !category_id || !image_url) {
     return c.json({ error: 'title, prompt_text, category_id, and image_url are required' }, 400)
@@ -326,9 +326,9 @@ app.post('/api/admin-51adc6a8e924b23431240a1156034bae/prompts', async (c) => {
   
   // Insert prompt
   const result = await DB.prepare(`
-    INSERT INTO prompts (title, prompt_text, image_url, category_id)
-    VALUES (?, ?, ?, ?)
-  `).bind(title, prompt_text, image_url, category_id).run()
+    INSERT INTO prompts (title, prompt_text, image_url, category_id, for_men)
+    VALUES (?, ?, ?, ?, ?)
+  `).bind(title, prompt_text, image_url, category_id, for_men ? 1 : 0).run()
   
   const promptId = result.meta.last_row_id
   
@@ -348,7 +348,7 @@ app.post('/api/admin-51adc6a8e924b23431240a1156034bae/prompts', async (c) => {
 app.put('/api/admin-51adc6a8e924b23431240a1156034bae/prompts/:id', async (c) => {
   const { DB } = c.env
   const id = c.req.param('id')
-  const { title, prompt_text, category_id, image_url, image_urls } = await c.req.json()
+  const { title, prompt_text, category_id, image_url, image_urls, for_men } = await c.req.json()
   
   if (!title || !prompt_text || !category_id || !image_url) {
     return c.json({ error: 'title, prompt_text, category_id, and image_url are required' }, 400)
@@ -357,9 +357,9 @@ app.put('/api/admin-51adc6a8e924b23431240a1156034bae/prompts/:id', async (c) => 
   // Update prompt
   await DB.prepare(`
     UPDATE prompts 
-    SET title = ?, prompt_text = ?, image_url = ?, category_id = ?, updated_at = CURRENT_TIMESTAMP
+    SET title = ?, prompt_text = ?, image_url = ?, category_id = ?, for_men = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
-  `).bind(title, prompt_text, image_url, category_id, id).run()
+  `).bind(title, prompt_text, image_url, category_id, for_men ? 1 : 0, id).run()
   
   // Delete old images
   await DB.prepare(`DELETE FROM prompt_images WHERE prompt_id = ?`).bind(id).run()
