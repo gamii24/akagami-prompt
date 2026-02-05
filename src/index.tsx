@@ -3354,7 +3354,7 @@ app.get('/how-to-use', (c) => {
     </head>
     <body class="bg-gray-50">
         <!-- Header -->
-        <header class="accent-bg text-white py-4 shadow-md">
+        <header class="accent-bg text-white py-6 shadow-md">
             <div class="max-w-4xl mx-auto px-4">
                 <a href="/" class="inline-flex items-center text-white hover:opacity-80 transition">
                     <i class="fas fa-arrow-left mr-2"></i>
