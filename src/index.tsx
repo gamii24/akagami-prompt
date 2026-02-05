@@ -930,7 +930,7 @@ app.get('/', (c) => {
                 </button>
                 <div id="category-buttons" style="display: contents;"></div>
                 <button onclick="toggleForMenFilter()" id="for-men-filter-btn" class="category-btn" style="background: #3B82F6; color: white; margin-left: 8px;">
-                    <i class="fas fa-male mr-1"></i>男性向け
+                    <i class="fas fa-heart mr-1"></i>男性も使用可
                 </button>
             </div>
         </div>
@@ -1200,7 +1200,7 @@ app.get('/', (c) => {
               <div class="prompt-card">
                 <div class="prompt-image-wrapper" onclick="location.href='/prompt/\${prompt.id}'">
                   <img src="\${prompt.image_url}" alt="\${prompt.title}" class="prompt-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22500%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 text-anchor=%22middle%22 x=%22200%22 y=%22250%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                  \${prompt.for_men ? '<div class="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow-lg"><i class="fas fa-male mr-1"></i>男性向け</div>' : ''}
+                  \${prompt.for_men ? '<div class="absolute top-2 right-2 bg-cyan-400 text-white text-lg" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);"><i class="fas fa-heart"></i></div>' : ''}
                 </div>
                 <div class="prompt-footer">
                   <button class="copy-btn text-white px-4 rounded text-sm font-light" data-prompt-id="\${prompt.id}">
@@ -1962,8 +1962,8 @@ app.get('/prompt/:id', async (c) => {
                 <!-- Title -->
                 <div class="mb-6">
                     <h1 id="prompt-title" class="text-3xl font-bold text-gray-800 mb-2"></h1>
-                    <div id="for-men-badge" class="hidden inline-flex items-center bg-blue-500 text-white text-sm px-3 py-1 rounded-full">
-                        <i class="fas fa-male mr-1"></i>男性向け
+                    <div id="for-men-badge" class="hidden inline-flex items-center bg-cyan-400 text-white text-sm px-3 py-1 rounded-full">
+                        <i class="fas fa-heart mr-1"></i>男性も使用可
                     </div>
                 </div>
 
@@ -2526,11 +2526,11 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                                 <input type="checkbox" id="prompt-for-men"
                                     class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                                 <span class="text-sm font-medium text-gray-700">
-                                    <i class="fas fa-male mr-1 text-blue-600"></i>
-                                    男性にも使えるプロンプト
+                                    <i class="fas fa-heart mr-1 text-cyan-400"></i>
+                                    男性も使用可能なプロンプト
                                 </span>
                             </label>
-                            <p class="text-xs text-gray-500 mt-1 ml-7">チェックすると男性向けフィルターで表示されます</p>
+                            <p class="text-xs text-gray-500 mt-1 ml-7">チェックすると男性も使用可フィルターで表示されます</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">プロンプト本文</label>
@@ -2861,7 +2861,7 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
                     <h3 class="font-bold text-gray-800">\${prompt.title}</h3>
-                    \${prompt.for_men ? '<span class="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full"><i class="fas fa-male mr-1"></i>男性向け</span>' : ''}
+                    \${prompt.for_men ? '<span class="bg-cyan-400 text-white text-xs px-2 py-0.5 rounded-full"><i class="fas fa-heart mr-1"></i>男性も使用可</span>' : ''}
                   </div>
                   <p class="text-sm text-gray-600 line-clamp-1">\${prompt.prompt_text}</p>
                   <div class="flex items-center gap-3 mt-1">
