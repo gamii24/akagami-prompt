@@ -929,7 +929,7 @@ app.get('/', (c) => {
                     すべて
                 </button>
                 <div id="category-buttons" style="display: contents;"></div>
-                <button onclick="toggleForMenFilter()" id="for-men-filter-btn" class="category-btn" style="background: #3B82F6; margin-left: 8px;">
+                <button onclick="toggleForMenFilter()" id="for-men-filter-btn" class="category-btn" style="background: #3B82F6; color: white; margin-left: 8px;">
                     <i class="fas fa-male mr-1"></i>男性向け
                 </button>
             </div>
