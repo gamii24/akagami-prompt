@@ -1967,15 +1967,20 @@ app.get('/prompt/:id', async (c) => {
                     </div>
                 </div>
 
-                <!-- Images Grid (4:5 ratio) -->
-                <div id="images-grid" class="image-grid mb-8"></div>
-
-                <!-- Mobile Copy Button (visible only on mobile, above prompt text) -->
-                <div class="md:hidden mb-4">
-                    <button id="copy-prompt-btn-mobile" class="copy-btn text-white w-full py-3 rounded-lg font-semibold uppercase">
-                        Copy
+                <!-- Copy Buttons (at the top, above images) -->
+                <div class="mb-6">
+                    <!-- Mobile Copy Button -->
+                    <button id="copy-prompt-btn-mobile" class="copy-btn text-white w-full py-3 rounded-lg font-semibold uppercase md:hidden">
+                        COPY
+                    </button>
+                    <!-- Desktop Copy Button -->
+                    <button id="copy-prompt-btn" class="copy-btn text-white w-full py-3 rounded-lg font-semibold uppercase hidden md:block">
+                        COPY
                     </button>
                 </div>
+
+                <!-- Images Grid (4:5 ratio) -->
+                <div id="images-grid" class="image-grid mb-8"></div>
 
                 <!-- Prompt Section -->
                 <div class="bg-gray-50 rounded-lg p-6 mb-8 shadow-sm">
@@ -1984,9 +1989,6 @@ app.get('/prompt/:id', async (c) => {
                             <h2 class="text-lg font-bold text-gray-800 mb-3">プロンプト</h2>
                             <p id="prompt-text" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></p>
                         </div>
-                        <button id="copy-prompt-btn" class="copy-btn-detail text-white px-6 rounded-lg font-semibold uppercase flex-shrink-0 hidden md:block">
-                            Copy
-                        </button>
                     </div>
                 </div>
             </div>
