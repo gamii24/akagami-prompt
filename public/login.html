@@ -142,7 +142,7 @@
         async function checkAuth() {
             try {
                 await axios.get('/api/auth/me');
-                window.location.href = '/mypage.html';
+                window.location.href = '/mypage';
             } catch (error) {
                 // Not logged in - stay on this page
             }
