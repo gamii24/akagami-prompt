@@ -56,6 +56,64 @@ app.use('*', async (c, next) => {
 app.route('/api/auth', auth)
 app.route('/api/submissions', submissions)
 
+// CSRF Protection Middleware for state-changing operations
+app.use('/api/*', async (c, next) => {
+  const method = c.req.method
+  
+  // Only check CSRF for state-changing methods
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+    const origin = c.req.header('Origin')
+    const referer = c.req.header('Referer')
+    const host = c.req.header('Host')
+    
+    // Allow requests from same origin
+    const allowedOrigins = [
+      'https://akagami-prompt.pages.dev',
+      'http://localhost:3000',
+      `https://${host}`
+    ]
+    
+    // Check Origin header (preferred)
+    if (origin) {
+      const originUrl = new URL(origin)
+      const isAllowed = allowedOrigins.some(allowed => {
+        try {
+          const allowedUrl = new URL(allowed)
+          return originUrl.hostname === allowedUrl.hostname
+        } catch {
+          return false
+        }
+      })
+      
+      if (!isAllowed) {
+        return c.json({ error: 'CSRF検証に失敗しました' }, 403)
+      }
+    } 
+    // Fallback to Referer header
+    else if (referer) {
+      const refererUrl = new URL(referer)
+      const isAllowed = allowedOrigins.some(allowed => {
+        try {
+          const allowedUrl = new URL(allowed)
+          return refererUrl.hostname === allowedUrl.hostname
+        } catch {
+          return false
+        }
+      })
+      
+      if (!isAllowed) {
+        return c.json({ error: 'CSRF検証に失敗しました' }, 403)
+      }
+    }
+    // No Origin or Referer header - reject
+    else {
+      return c.json({ error: 'CSRF検証に失敗しました' }, 403)
+    }
+  }
+  
+  await next()
+})
+
 // Enable CORS
 app.use('/api/*', cors())
 

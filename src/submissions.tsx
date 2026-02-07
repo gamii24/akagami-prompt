@@ -8,6 +8,30 @@ type Bindings = {
 
 const submissions = new Hono<{ Bindings: Bindings }>()
 
+// Helper: Validate image file by magic number
+function validateImageMagicNumber(buffer: ArrayBuffer): { valid: boolean; mimeType: string | null } {
+  const arr = new Uint8Array(buffer).subarray(0, 12)
+  
+  // JPEG: FF D8 FF
+  if (arr[0] === 0xFF && arr[1] === 0xD8 && arr[2] === 0xFF) {
+    return { valid: true, mimeType: 'image/jpeg' }
+  }
+  
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4E && arr[3] === 0x47 &&
+      arr[4] === 0x0D && arr[5] === 0x0A && arr[6] === 0x1A && arr[7] === 0x0A) {
+    return { valid: true, mimeType: 'image/png' }
+  }
+  
+  // WebP: 52 49 46 46 ... 57 45 42 50
+  if (arr[0] === 0x52 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x46 &&
+      arr[8] === 0x57 && arr[9] === 0x45 && arr[10] === 0x42 && arr[11] === 0x50) {
+    return { valid: true, mimeType: 'image/webp' }
+  }
+  
+  return { valid: false, mimeType: null }
+}
+
 // Helper: Get current user from session
 async function getCurrentUser(c: any) {
   const sessionToken = getCookie(c, 'session_token')
@@ -47,8 +71,9 @@ submissions.post('/upload', async (c) => {
     }
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return c.json({ error: '画像ファイルのみアップロード可能です' }, 400)
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      return c.json({ error: '画像ファイルはJPEG、PNG、WebP形式のみ対応しています' }, 400)
     }
 
     // Validate file size (5MB max)
@@ -56,16 +81,30 @@ submissions.post('/upload', async (c) => {
       return c.json({ error: '画像サイズは5MB以下にしてください' }, 400)
     }
 
-    // Generate unique filename
-    const ext = file.name.split('.').pop()
+    // Read file buffer
+    const arrayBuffer = await file.arrayBuffer()
+    
+    // Validate by magic number
+    const magicCheck = validateImageMagicNumber(arrayBuffer)
+    if (!magicCheck.valid) {
+      return c.json({ error: '無効な画像ファイルです' }, 400)
+    }
+    
+    // Verify MIME type matches magic number
+    if (magicCheck.mimeType !== file.type) {
+      return c.json({ error: 'ファイル形式が一致しません' }, 400)
+    }
+
+    // Sanitize filename - remove special characters
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '')
+    const ext = sanitizedName.split('.').pop() || 'jpg'
     const filename = `${Date.now()}-${crypto.randomUUID()}.${ext}`
     const key = `submissions/${filename}`
 
     // Upload to R2
-    const arrayBuffer = await file.arrayBuffer()
     await c.env.SUBMISSIONS_R2.put(key, arrayBuffer, {
       httpMetadata: {
-        contentType: file.type
+        contentType: magicCheck.mimeType // Use validated MIME type
       }
     })
 

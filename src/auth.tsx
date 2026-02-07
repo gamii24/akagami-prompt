@@ -206,12 +206,32 @@ auth.get('/verify', async (c) => {
 // API: Login
 auth.post('/login', async (c) => {
   const { email, password } = await c.req.json()
+  
+  // Get client IP address
+  const ipAddress = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown'
 
   if (!email || !password) {
     return c.json({ error: 'メールアドレスとパスワードを入力してください' }, 400)
   }
 
   try {
+    // Check rate limiting - count failed attempts in last 15 minutes
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString()
+    
+    const recentAttempts = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count
+      FROM login_attempts
+      WHERE ip_address = ? 
+        AND attempt_time > ?
+        AND success = 0
+    `).bind(ipAddress, fifteenMinutesAgo).first()
+    
+    if (recentAttempts && (recentAttempts.count as number) >= 5) {
+      return c.json({ 
+        error: 'ログイン試行回数が上限に達しました。15分後に再試行してください。' 
+      }, 429) // 429 Too Many Requests
+    }
+
     // Find user
     const user = await c.env.DB.prepare(`
       SELECT id, password_hash, password_salt, nickname, is_verified 
@@ -220,19 +240,43 @@ auth.post('/login', async (c) => {
     `).bind(email).first()
 
     if (!user) {
+      // Record failed attempt
+      await c.env.DB.prepare(`
+        INSERT INTO login_attempts (ip_address, email, success)
+        VALUES (?, ?, 0)
+      `).bind(ipAddress, email).run()
+      
       return c.json({ error: 'メールアドレスまたはパスワードが正しくありません' }, 401)
     }
 
     // Check if verified
     if (!user.is_verified) {
+      // Record failed attempt
+      await c.env.DB.prepare(`
+        INSERT INTO login_attempts (ip_address, email, success)
+        VALUES (?, ?, 0)
+      `).bind(ipAddress, email).run()
+      
       return c.json({ error: 'メールアドレスが認証されていません' }, 401)
     }
 
     // Verify password
     const { hash: passwordHash } = await hashPassword(password, user.password_salt as string)
     if (passwordHash !== user.password_hash) {
+      // Record failed attempt
+      await c.env.DB.prepare(`
+        INSERT INTO login_attempts (ip_address, email, success)
+        VALUES (?, ?, 0)
+      `).bind(ipAddress, email).run()
+      
       return c.json({ error: 'メールアドレスまたはパスワードが正しくありません' }, 401)
     }
+
+    // Record successful attempt
+    await c.env.DB.prepare(`
+      INSERT INTO login_attempts (ip_address, email, success)
+      VALUES (?, ?, 1)
+    `).bind(ipAddress, email).run()
 
     // Create session
     const sessionToken = generateToken()
