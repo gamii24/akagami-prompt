@@ -2684,6 +2684,9 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                 <button onclick="switchTab('messages')" class="tab-btn px-6 py-3 font-medium transition rounded-t-lg text-gray-600 hover:bg-gray-100" id="tab-messages">
                     <i class="fas fa-comment-dots mr-2"></i>吹き出しメッセージ
                 </button>
+                <button onclick="switchTab('submissions')" class="tab-btn px-6 py-3 font-medium transition rounded-t-lg text-gray-600 hover:bg-gray-100" id="tab-submissions">
+                    <i class="fas fa-images mr-2"></i>投稿承認
+                </button>
             </div>
 
             <!-- Prompts Tab -->
@@ -2874,6 +2877,37 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                         登録済みメッセージ
                     </h2>
                     <div id="messages-list" class="space-y-3">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                            <p class="mt-2">読み込み中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submissions Tab -->
+            <div id="content-submissions" class="tab-content hidden">
+                <!-- Pending Submissions -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-clock mr-2 accent-text"></i>
+                        承認待ち投稿
+                    </h2>
+                    <div id="pending-submissions-list" class="space-y-4">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                            <p class="mt-2">読み込み中...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approved Submissions -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-check-circle mr-2 accent-text"></i>
+                        承認済み投稿
+                    </h2>
+                    <div id="approved-submissions-list" class="space-y-4">
                         <div class="text-center py-8 text-gray-500">
                             <i class="fas fa-spinner fa-spin text-2xl"></i>
                             <p class="mt-2">読み込み中...</p>
@@ -3478,10 +3512,158 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
             }
           }
 
+          // Load submissions for admin
+          async function loadSubmissions() {
+            try {
+              const [pendingRes, approvedRes] = await Promise.all([
+                axios.get(\`\${ADMIN_API_BASE.replace('admin-51adc6a8e924b23431240a1156034bae', 'submissions')}/admin/list?status=pending\`),
+                axios.get(\`\${ADMIN_API_BASE.replace('admin-51adc6a8e924b23431240a1156034bae', 'submissions')}/admin/list?status=approved\`)
+              ]);
+              
+              renderPendingSubmissions(pendingRes.data);
+              renderApprovedSubmissions(approvedRes.data);
+            } catch (error) {
+              console.error('Error loading submissions:', error);
+              document.getElementById('pending-submissions-list').innerHTML = 
+                '<p class="text-red-500 text-center py-8">読み込みに失敗しました</p>';
+              document.getElementById('approved-submissions-list').innerHTML = 
+                '<p class="text-red-500 text-center py-8">読み込みに失敗しました</p>';
+            }
+          }
+
+          function renderPendingSubmissions(submissions) {
+            const list = document.getElementById('pending-submissions-list');
+            
+            if (submissions.length === 0) {
+              list.innerHTML = '<p class="text-gray-500 text-center py-8">承認待ち投稿はありません</p>';
+              return;
+            }
+
+            list.innerHTML = submissions.map(sub => \`
+              <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-accent-color transition">
+                <div class="flex items-start gap-4">
+                  <div class="w-32 h-32 flex-shrink-0">
+                    <img src="\${sub.image_url}" alt="投稿画像" 
+                      class="w-full h-full object-cover rounded-lg shadow">
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="font-semibold text-gray-800">
+                        <i class="fas fa-user mr-1 text-gray-600"></i>\${sub.user_nickname}
+                      </span>
+                      <span class="text-xs text-gray-500">
+                        <i class="fas fa-clock mr-1"></i>\${new Date(sub.created_at).toLocaleString('ja-JP')}
+                      </span>
+                    </div>
+                    <div class="mb-2">
+                      <a href="/prompt/\${sub.prompt_id}" target="_blank" 
+                        class="text-blue-600 hover:underline text-sm">
+                        <i class="fas fa-link mr-1"></i>プロンプト: \${sub.prompt_title}
+                      </a>
+                    </div>
+                    <div class="flex gap-2">
+                      <button onclick="approveSubmission(\${sub.id})" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-check mr-1"></i>承認
+                      </button>
+                      <button onclick="rejectSubmission(\${sub.id})" 
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-times mr-1"></i>却下
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            \`).join('');
+          }
+
+          function renderApprovedSubmissions(submissions) {
+            const list = document.getElementById('approved-submissions-list');
+            
+            if (submissions.length === 0) {
+              list.innerHTML = '<p class="text-gray-500 text-center py-8">承認済み投稿はありません</p>';
+              return;
+            }
+
+            list.innerHTML = submissions.map(sub => \`
+              <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-gray-300 transition">
+                <div class="flex items-start gap-4">
+                  <div class="w-32 h-32 flex-shrink-0">
+                    <img src="\${sub.image_url}" alt="投稿画像" 
+                      class="w-full h-full object-cover rounded-lg shadow">
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="font-semibold text-gray-800">
+                        <i class="fas fa-user mr-1 text-gray-600"></i>\${sub.user_nickname}
+                      </span>
+                      <span class="text-xs text-gray-500">
+                        <i class="fas fa-clock mr-1"></i>\${new Date(sub.created_at).toLocaleString('ja-JP')}
+                      </span>
+                      <span class="text-xs text-green-600 font-semibold">
+                        <i class="fas fa-check-circle mr-1"></i>承認済み
+                      </span>
+                    </div>
+                    <div class="mb-2">
+                      <a href="/prompt/\${sub.prompt_id}" target="_blank" 
+                        class="text-blue-600 hover:underline text-sm">
+                        <i class="fas fa-link mr-1"></i>プロンプト: \${sub.prompt_title}
+                      </a>
+                    </div>
+                    <button onclick="deleteAdminSubmission(\${sub.id})" 
+                      class="text-red-600 hover:bg-red-50 px-3 py-1 rounded transition">
+                      <i class="fas fa-trash mr-1"></i>削除
+                    </button>
+                  </div>
+                </div>
+              </div>
+            \`).join('');
+          }
+
+          async function approveSubmission(id) {
+            if (!confirm('この投稿を承認しますか？')) return;
+
+            try {
+              await axios.put(\`\${ADMIN_API_BASE.replace('admin-51adc6a8e924b23431240a1156034bae', 'submissions')}/admin/\${id}/approve\`);
+              await loadSubmissions();
+              alert('投稿を承認しました！');
+            } catch (error) {
+              console.error('Error approving submission:', error);
+              alert('承認に失敗しました');
+            }
+          }
+
+          async function rejectSubmission(id) {
+            if (!confirm('この投稿を却下して削除しますか？')) return;
+
+            try {
+              await axios.delete(\`\${ADMIN_API_BASE.replace('admin-51adc6a8e924b23431240a1156034bae', 'submissions')}/admin/\${id}\`);
+              await loadSubmissions();
+              alert('投稿を却下しました');
+            } catch (error) {
+              console.error('Error rejecting submission:', error);
+              alert('却下に失敗しました');
+            }
+          }
+
+          async function deleteAdminSubmission(id) {
+            if (!confirm('この投稿を削除しますか？')) return;
+
+            try {
+              await axios.delete(\`\${ADMIN_API_BASE.replace('admin-51adc6a8e924b23431240a1156034bae', 'submissions')}/admin/\${id}\`);
+              await loadSubmissions();
+              alert('投稿を削除しました');
+            } catch (error) {
+              console.error('Error deleting submission:', error);
+              alert('削除に失敗しました');
+            }
+          }
+
           // Initialize
           loadCategories();
           loadPrompts();
           loadSpeechMessages();
+          loadSubmissions();
         </script>
 
         <!-- Footer -->
