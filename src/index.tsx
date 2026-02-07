@@ -78,6 +78,9 @@ app.get('/ogp-image.png', (c) => {
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
 
+// Serve HTML files from root (for login.html, mypage.html, verify.html)
+app.use('*.html', serveStatic({ root: './' }))
+
 // API routes
 app.get('/api/prompts', async (c) => {
   const { DB } = c.env
