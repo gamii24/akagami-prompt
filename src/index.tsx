@@ -1,13 +1,21 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
+import auth from './auth'
+import submissions from './submissions'
 
 type Bindings = {
   DB: D1Database;
   R2: R2Bucket;
+  SUBMISSIONS_R2: R2Bucket;
+  RESEND_API_KEY: string;
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
+
+// Mount auth and submissions routes
+app.route('/api/auth', auth)
+app.route('/api/submissions', submissions)
 
 // Enable CORS
 app.use('/api/*', cors())
