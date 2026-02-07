@@ -912,10 +912,19 @@ app.get('/', (c) => {
                             Akagami Prompt
                         </a>
                     </h1>
-                    <a href="/how-to-use" class="text-white hover:opacity-80 transition flex items-center group">
-                        <i class="fas fa-book-open mr-2 group-hover:animate-[wiggle_0.5s_ease-in-out]"></i>
-                        <span class="hidden sm:inline">使い方</span>
-                    </a>
+                    <div class="flex items-center gap-4">
+                        <a href="/how-to-use" class="text-white hover:opacity-80 transition flex items-center group">
+                            <i class="fas fa-book-open mr-2 group-hover:animate-[wiggle_0.5s_ease-in-out]"></i>
+                            <span class="hidden sm:inline">使い方</span>
+                        </a>
+                        <!-- Auth section -->
+                        <div id="auth-section">
+                            <a href="/login" class="text-white hover:opacity-80 transition flex items-center">
+                                <i class="fas fa-sign-in-alt mr-2"></i>
+                                <span class="hidden sm:inline">ログイン</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -1499,7 +1508,26 @@ app.get('/', (c) => {
             applyFilters();
           }
 
+          // Check authentication status
+          async function checkAuth() {
+            try {
+              const response = await axios.get('/api/auth/me');
+              const user = response.data.user;
+              document.getElementById('auth-section').innerHTML = \`
+                <div class="flex items-center gap-2">
+                  <a href="/mypage" class="text-white hover:opacity-80 transition flex items-center">
+                    <i class="fas fa-user-circle mr-1"></i>
+                    <span class="hidden sm:inline">\${user.nickname}</span>
+                  </a>
+                </div>
+              \`;
+            } catch (error) {
+              // Not logged in - show login link (already in HTML)
+            }
+          }
+
           // Initialize
+          checkAuth();
           loadGridPreference();
           loadSpeechBubbleMessages();
           loadCategories();
@@ -1976,15 +2004,29 @@ app.get('/prompt/:id', async (c) => {
                 </div>
 
                 <!-- Copy Buttons (at the top, above images) -->
-                <div class="mb-6">
-                    <!-- Mobile Copy Button -->
-                    <button id="copy-prompt-btn-mobile" class="copy-btn text-white w-full py-3 rounded-lg font-semibold uppercase md:hidden">
-                        COPY
+                <div class="mb-6 flex gap-3">
+                    <div class="flex-1">
+                        <!-- Mobile Copy Button -->
+                        <button id="copy-prompt-btn-mobile" class="copy-btn text-white w-full py-3 rounded-lg font-semibold uppercase md:hidden">
+                            COPY
+                        </button>
+                        <!-- Desktop Copy Button -->
+                        <button id="copy-prompt-btn" class="copy-btn text-white w-full py-3 rounded-lg font-semibold uppercase hidden md:block">
+                            COPY
+                        </button>
+                    </div>
+                    <!-- Submit Button -->
+                    <button id="submit-btn" onclick="openSubmitModal()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold uppercase transition hidden">
+                        <i class="fas fa-upload mr-2"></i>投稿
                     </button>
-                    <!-- Desktop Copy Button -->
-                    <button id="copy-prompt-btn" class="copy-btn text-white w-full py-3 rounded-lg font-semibold uppercase hidden md:block">
-                        COPY
-                    </button>
+                </div>
+
+                <!-- User Submissions Gallery -->
+                <div id="submissions-gallery" class="mb-8 hidden">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-images mr-2 accent-text"></i>みんなの投稿
+                    </h3>
+                    <div id="submissions-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
                 </div>
 
                 <!-- Images Grid (4:5 ratio) -->
@@ -2018,6 +2060,38 @@ app.get('/prompt/:id', async (c) => {
             </button>
             <div class="lightbox-counter">
                 <span id="lightbox-counter"></span>
+            </div>
+        </div>
+
+        <!-- Submission Modal -->
+        <div id="submit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" onclick="closeSubmitModal()">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4" onclick="event.stopPropagation()">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-upload mr-2 accent-text"></i>画像を投稿
+                </h2>
+                <p class="text-sm text-gray-600 mb-4">このプロンプトを使って生成した画像を投稿してください</p>
+                
+                <form id="submit-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">画像を選択</label>
+                        <input type="file" id="submit-image" accept="image/*" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        <p class="text-xs text-gray-500 mt-1">最大5MB、JPEG/PNG/WebP</p>
+                    </div>
+                    
+                    <div id="image-preview" class="hidden">
+                        <img id="preview-img" class="w-full h-48 object-cover rounded-lg">
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="submit" class="flex-1 accent-bg text-white py-3 rounded-lg font-semibold hover:opacity-90">
+                            投稿する
+                        </button>
+                        <button type="button" onclick="closeSubmitModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            キャンセル
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -2348,9 +2422,113 @@ app.get('/prompt/:id', async (c) => {
             }
           });
 
+          // Submission functions
+          async function checkAuthForSubmit() {
+            try {
+              await axios.get('/api/auth/me');
+              document.getElementById('submit-btn').classList.remove('hidden');
+            } catch (error) {
+              // Not logged in - hide submit button
+            }
+          }
+
+          function openSubmitModal() {
+            document.getElementById('submit-modal').classList.remove('hidden');
+            document.getElementById('submit-modal').classList.add('flex');
+          }
+
+          function closeSubmitModal() {
+            document.getElementById('submit-modal').classList.add('hidden');
+            document.getElementById('submit-modal').classList.remove('flex');
+            document.getElementById('submit-form').reset();
+            document.getElementById('image-preview').classList.add('hidden');
+          }
+
+          // Preview image
+          document.getElementById('submit-image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                document.getElementById('preview-img').src = e.target.result;
+                document.getElementById('image-preview').classList.remove('hidden');
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+
+          // Submit form
+          document.getElementById('submit-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('submit-image');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+              alert('画像を選択してください');
+              return;
+            }
+
+            try {
+              // Upload image
+              const formData = new FormData();
+              formData.append('image', file);
+              
+              const uploadResponse = await axios.post('/api/submissions/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              });
+
+              // Create submission
+              await axios.post('/api/submissions', {
+                prompt_id: promptId,
+                image_url: uploadResponse.data.url
+              });
+
+              alert('投稿が完了しました！管理者の承認をお待ちください。');
+              closeSubmitModal();
+              loadSubmissions();
+            } catch (error) {
+              console.error(error);
+              alert(error.response?.data?.error || '投稿に失敗しました');
+            }
+          });
+
+          async function loadSubmissions() {
+            try {
+              const response = await axios.get(\`/api/submissions/prompt/\${promptId}\`);
+              const submissions = response.data;
+
+              if (submissions.length === 0) {
+                document.getElementById('submissions-gallery').classList.add('hidden');
+                return;
+              }
+
+              document.getElementById('submissions-gallery').classList.remove('hidden');
+              document.getElementById('submissions-list').innerHTML = submissions.map(sub => \`
+                <div class="relative group">
+                  <img src="\${sub.image_url}" class="w-full h-48 object-cover rounded-lg shadow hover:shadow-lg transition cursor-pointer"
+                    onclick="openSubmissionLightbox('\${sub.image_url}')">
+                  <div class="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                    by \${sub.user_nickname}
+                  </div>
+                </div>
+              \`).join('');
+            } catch (error) {
+              console.error('Failed to load submissions:', error);
+            }
+          }
+
+          function openSubmissionLightbox(url) {
+            document.getElementById('lightbox-image').src = url;
+            document.getElementById('lightbox').classList.add('active');
+            document.getElementById('lightbox-counter').textContent = '';
+          }
+
           // Initialize
+          checkAuthForSubmit();
           loadSpeechBubbleMessages();
           loadPrompt();
+          loadSubmissions();
         </script>
 
         <!-- Footer -->
