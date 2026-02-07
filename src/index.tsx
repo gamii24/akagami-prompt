@@ -919,7 +919,7 @@ app.get('/', (c) => {
                         </a>
                         <!-- Auth section -->
                         <div id="auth-section">
-                            <a href="/login" class="text-white hover:opacity-80 transition flex items-center">
+                            <a href="/login.html" class="text-white hover:opacity-80 transition flex items-center">
                                 <i class="fas fa-sign-in-alt mr-2"></i>
                                 <span class="hidden sm:inline">ログイン</span>
                             </a>
@@ -1515,7 +1515,7 @@ app.get('/', (c) => {
               const user = response.data.user;
               document.getElementById('auth-section').innerHTML = \`
                 <div class="flex items-center gap-2">
-                  <a href="/mypage" class="text-white hover:opacity-80 transition flex items-center">
+                  <a href="/mypage.html" class="text-white hover:opacity-80 transition flex items-center">
                     <i class="fas fa-user-circle mr-1"></i>
                     <span class="hidden sm:inline">\${user.nickname}</span>
                   </a>
