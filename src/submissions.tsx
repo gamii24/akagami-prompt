@@ -8,6 +8,31 @@ type Bindings = {
 
 const submissions = new Hono<{ Bindings: Bindings }>()
 
+// Helper: Log audit event
+async function logAuditEvent(
+  db: D1Database,
+  eventType: string,
+  userId: number | null,
+  ipAddress: string,
+  userAgent: string,
+  details: any
+) {
+  try {
+    await db.prepare(`
+      INSERT INTO audit_logs (event_type, user_id, ip_address, user_agent, details)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(
+      eventType,
+      userId,
+      ipAddress,
+      userAgent,
+      JSON.stringify(details)
+    ).run()
+  } catch (error) {
+    console.error('Failed to log audit event:', error)
+  }
+}
+
 // Helper: Validate image file by magic number
 function validateImageMagicNumber(buffer: ArrayBuffer): { valid: boolean; mimeType: string | null } {
   const arr = new Uint8Array(buffer).subarray(0, 12)
@@ -292,9 +317,31 @@ submissions.put('/admin/:id/approve', async (c) => {
   const id = c.req.param('id')
 
   try {
+    // Get submission details before approval
+    const submission = await c.env.DB.prepare(
+      'SELECT user_id, prompt_id FROM user_submissions WHERE id = ?'
+    ).bind(id).first()
+
     await c.env.DB.prepare(
       'UPDATE user_submissions SET is_approved = 1 WHERE id = ?'
     ).bind(id).run()
+
+    // Log approval event
+    const ipAddress = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown'
+    const userAgent = c.req.header('User-Agent') || 'unknown'
+    
+    await logAuditEvent(
+      c.env.DB,
+      'submission_approved',
+      null, // Admin user ID (no auth system for admin yet)
+      ipAddress,
+      userAgent,
+      { 
+        submissionId: id,
+        userId: submission?.user_id,
+        promptId: submission?.prompt_id
+      }
+    )
 
     return c.json({ success: true })
   } catch (error) {
@@ -308,9 +355,32 @@ submissions.delete('/admin/:id', async (c) => {
   const id = c.req.param('id')
 
   try {
+    // Get submission details before deletion
+    const submission = await c.env.DB.prepare(
+      'SELECT user_id, prompt_id, image_url FROM user_submissions WHERE id = ?'
+    ).bind(id).first()
+
     await c.env.DB.prepare(
       'DELETE FROM user_submissions WHERE id = ?'
     ).bind(id).run()
+
+    // Log deletion event
+    const ipAddress = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown'
+    const userAgent = c.req.header('User-Agent') || 'unknown'
+    
+    await logAuditEvent(
+      c.env.DB,
+      'submission_deleted',
+      null, // Admin user ID
+      ipAddress,
+      userAgent,
+      { 
+        submissionId: id,
+        userId: submission?.user_id,
+        promptId: submission?.prompt_id,
+        imageUrl: submission?.image_url
+      }
+    )
 
     return c.json({ success: true })
   } catch (error) {

@@ -8,6 +8,31 @@ type Bindings = {
 
 const auth = new Hono<{ Bindings: Bindings }>()
 
+// Helper: Log audit event
+async function logAuditEvent(
+  db: D1Database,
+  eventType: string,
+  userId: number | null,
+  ipAddress: string,
+  userAgent: string,
+  details: any
+) {
+  try {
+    await db.prepare(`
+      INSERT INTO audit_logs (event_type, user_id, ip_address, user_agent, details)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(
+      eventType,
+      userId,
+      ipAddress,
+      userAgent,
+      JSON.stringify(details)
+    ).run()
+  } catch (error) {
+    console.error('Failed to log audit event:', error)
+  }
+}
+
 // Helper: Generate random salt
 function generateSalt(): string {
   const buffer = new Uint8Array(16) // 128-bit salt
@@ -278,14 +303,27 @@ auth.post('/login', async (c) => {
       VALUES (?, ?, 1)
     `).bind(ipAddress, email).run()
 
-    // Create session
+    // Get user agent
+    const userAgent = c.req.header('User-Agent') || 'unknown'
+
+    // Create session with device tracking
     const sessionToken = generateToken()
     const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
 
     await c.env.DB.prepare(`
-      INSERT INTO user_sessions (user_id, session_token, expires_at)
-      VALUES (?, ?, ?)
-    `).bind(user.id, sessionToken, expiryDate.toISOString()).run()
+      INSERT INTO user_sessions (user_id, session_token, expires_at, user_agent, ip_address, last_activity)
+      VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `).bind(user.id, sessionToken, expiryDate.toISOString(), userAgent, ipAddress).run()
+
+    // Log successful login
+    await logAuditEvent(
+      c.env.DB,
+      'login',
+      user.id as number,
+      ipAddress,
+      userAgent,
+      { email, success: true }
+    )
 
     // Set cookie
     setCookie(c, 'session_token', sessionToken, {
@@ -315,9 +353,30 @@ auth.post('/logout', async (c) => {
 
   if (sessionToken) {
     try {
+      // Get user info before deleting session
+      const session = await c.env.DB.prepare(`
+        SELECT user_id FROM user_sessions WHERE session_token = ?
+      `).bind(sessionToken).first()
+
+      // Delete session
       await c.env.DB.prepare(
         'DELETE FROM user_sessions WHERE session_token = ?'
       ).bind(sessionToken).run()
+
+      // Log logout event
+      if (session) {
+        const ipAddress = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown'
+        const userAgent = c.req.header('User-Agent') || 'unknown'
+        
+        await logAuditEvent(
+          c.env.DB,
+          'logout',
+          session.user_id as number,
+          ipAddress,
+          userAgent,
+          { sessionToken: sessionToken.substring(0, 10) + '...' } // Only log part of token
+        )
+      }
     } catch (error) {
       console.error('Logout error:', error)
     }
@@ -358,6 +417,11 @@ auth.get('/me', async (c) => {
       ).bind(sessionToken).run()
       return c.json({ error: 'セッションの有効期限が切れています' }, 401)
     }
+
+    // Update last activity
+    await c.env.DB.prepare(
+      'UPDATE user_sessions SET last_activity = datetime(\'now\') WHERE session_token = ?'
+    ).bind(sessionToken).run()
 
     return c.json({
       user: {
