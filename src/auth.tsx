@@ -8,19 +8,60 @@ type Bindings = {
 
 const auth = new Hono<{ Bindings: Bindings }>()
 
-// Helper: Hash password
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hash = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(hash))
+// Helper: Generate random salt
+function generateSalt(): string {
+  const buffer = new Uint8Array(16) // 128-bit salt
+  crypto.getRandomValues(buffer)
+  return Array.from(buffer)
     .map(b => b.toString(16).padStart(2, '0'))
     .join('')
 }
 
-// Helper: Generate verification token
+// Helper: Hash password with PBKDF2
+async function hashPassword(password: string, salt?: string): Promise<{ hash: string; salt: string }> {
+  // Generate salt if not provided
+  const passwordSalt = salt || generateSalt()
+  
+  // Convert password and salt to buffer
+  const encoder = new TextEncoder()
+  const passwordBuffer = encoder.encode(password)
+  const saltBuffer = encoder.encode(passwordSalt)
+  
+  // Import key
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    passwordBuffer,
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  )
+  
+  // Derive key with PBKDF2
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: saltBuffer,
+      iterations: 100000, // 100,000 iterations
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    256 // 256-bit output
+  )
+  
+  // Convert to hex string
+  const hashArray = Array.from(new Uint8Array(derivedBits))
+  const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  
+  return { hash, salt: passwordSalt }
+}
+
+// Helper: Generate secure random token (256-bit)
 function generateToken(): string {
-  return crypto.randomUUID()
+  const buffer = new Uint8Array(32) // 256-bit token
+  crypto.getRandomValues(buffer)
+  return Array.from(buffer)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
 }
 
 // Helper: Send verification email
@@ -86,8 +127,8 @@ auth.post('/register', async (c) => {
       return c.json({ error: 'このニックネームは既に使用されています' }, 400)
     }
 
-    // Hash password
-    const passwordHash = await hashPassword(password)
+    // Hash password with PBKDF2
+    const { hash: passwordHash, salt: passwordSalt } = await hashPassword(password)
 
     // Generate verification token
     const verificationToken = generateToken()
@@ -95,11 +136,12 @@ auth.post('/register', async (c) => {
 
     // Insert user
     await c.env.DB.prepare(`
-      INSERT INTO users (email, password_hash, nickname, verification_token, verification_token_expiry)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO users (email, password_hash, password_salt, nickname, verification_token, verification_token_expiry)
+      VALUES (?, ?, ?, ?, ?, ?)
     `).bind(
       email,
       passwordHash,
+      passwordSalt,
       nickname,
       verificationToken,
       tokenExpiry.toISOString()
@@ -172,7 +214,7 @@ auth.post('/login', async (c) => {
   try {
     // Find user
     const user = await c.env.DB.prepare(`
-      SELECT id, password_hash, nickname, is_verified 
+      SELECT id, password_hash, password_salt, nickname, is_verified 
       FROM users 
       WHERE email = ?
     `).bind(email).first()
@@ -187,7 +229,7 @@ auth.post('/login', async (c) => {
     }
 
     // Verify password
-    const passwordHash = await hashPassword(password)
+    const { hash: passwordHash } = await hashPassword(password, user.password_salt as string)
     if (passwordHash !== user.password_hash) {
       return c.json({ error: 'メールアドレスまたはパスワードが正しくありません' }, 401)
     }

@@ -11,7 +11,46 @@ type Bindings = {
   RESEND_API_KEY: string;
 }
 
+// Helper: Escape HTML to prevent XSS
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }
+  return text.replace(/[&<>"']/g, (char) => map[char])
+}
+
 const app = new Hono<{ Bindings: Bindings }>()
+
+// Security Headers Middleware
+app.use('*', async (c, next) => {
+  await next()
+  
+  // Set security headers
+  c.header('X-Content-Type-Options', 'nosniff')
+  c.header('X-Frame-Options', 'DENY')
+  c.header('X-XSS-Protection', '1; mode=block')
+  c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
+  c.header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
+  
+  // Content Security Policy
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' cdn.tailwindcss.com cdn.jsdelivr.net www.googletagmanager.com",
+    "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com",
+    "font-src 'self' fonts.googleapis.com fonts.gstatic.com cdn.jsdelivr.net",
+    "img-src 'self' data: blob: https:",
+    "connect-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'"
+  ].join('; ')
+  
+  c.header('Content-Security-Policy', csp)
+})
 
 // Mount auth and submissions routes
 app.route('/api/auth', auth)
@@ -1511,6 +1550,18 @@ app.get('/', (c) => {
             applyFilters();
           }
 
+          // Helper: Escape HTML to prevent XSS
+          function escapeHtml(text) {
+            const map = {
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              '"': '&quot;',
+              "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, (char) => map[char]);
+          }
+
           // Check authentication status
           async function checkAuth() {
             try {
@@ -1520,7 +1571,7 @@ app.get('/', (c) => {
                 <div class="flex items-center gap-2">
                   <a href="/mypage" class="text-white hover:opacity-80 transition flex items-center">
                     <i class="fas fa-user-circle mr-1"></i>
-                    <span class="hidden sm:inline">\${user.nickname}</span>
+                    <span class="hidden sm:inline">\${escapeHtml(user.nickname)}</span>
                   </a>
                 </div>
               \`;
@@ -2106,6 +2157,18 @@ app.get('/prompt/:id', async (c) => {
           let currentLightboxIndex = 0;
           let speechBubbleMessages = []; // Messages loaded from API
 
+          // Helper: Escape HTML to prevent XSS
+          function escapeHtml(text) {
+            const map = {
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              '"': '&quot;',
+              "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, (char) => map[char]);
+          }
+
           // Load speech bubble messages from API
           async function loadSpeechBubbleMessages() {
             try {
@@ -2512,7 +2575,7 @@ app.get('/prompt/:id', async (c) => {
                   <img src="\${sub.image_url}" class="w-full h-48 object-cover rounded-lg shadow hover:shadow-lg transition cursor-pointer"
                     onclick="openSubmissionLightbox('\${sub.image_url}')">
                   <div class="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
-                    by \${sub.user_nickname}
+                    by \${escapeHtml(sub.user_nickname)}
                   </div>
                 </div>
               \`).join('');
@@ -2924,6 +2987,18 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
         <script>
           // Admin API base path - keep this secret
           const ADMIN_API_BASE = '/api/admin-51adc6a8e924b23431240a1156034bae';
+          
+          // Helper: Escape HTML to prevent XSS
+          function escapeHtml(text) {
+            const map = {
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              '"': '&quot;',
+              "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, (char) => map[char]);
+          }
           
           let categories = [];
           let prompts = [];
@@ -3552,7 +3627,7 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                   <div class="flex-1">
                     <div class="flex items-center gap-3 mb-2">
                       <span class="font-semibold text-gray-800">
-                        <i class="fas fa-user mr-1 text-gray-600"></i>\${sub.user_nickname}
+                        <i class="fas fa-user mr-1 text-gray-600"></i>\${escapeHtml(sub.user_nickname)}
                       </span>
                       <span class="text-xs text-gray-500">
                         <i class="fas fa-clock mr-1"></i>\${new Date(sub.created_at).toLocaleString('ja-JP')}
@@ -3561,7 +3636,7 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                     <div class="mb-2">
                       <a href="/prompt/\${sub.prompt_id}" target="_blank" 
                         class="text-blue-600 hover:underline text-sm">
-                        <i class="fas fa-link mr-1"></i>プロンプト: \${sub.prompt_title}
+                        <i class="fas fa-link mr-1"></i>プロンプト: \${escapeHtml(sub.prompt_title)}
                       </a>
                     </div>
                     <div class="flex gap-2">
@@ -3598,7 +3673,7 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                   <div class="flex-1">
                     <div class="flex items-center gap-3 mb-2">
                       <span class="font-semibold text-gray-800">
-                        <i class="fas fa-user mr-1 text-gray-600"></i>\${sub.user_nickname}
+                        <i class="fas fa-user mr-1 text-gray-600"></i>\${escapeHtml(sub.user_nickname)}
                       </span>
                       <span class="text-xs text-gray-500">
                         <i class="fas fa-clock mr-1"></i>\${new Date(sub.created_at).toLocaleString('ja-JP')}
@@ -3610,7 +3685,7 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
                     <div class="mb-2">
                       <a href="/prompt/\${sub.prompt_id}" target="_blank" 
                         class="text-blue-600 hover:underline text-sm">
-                        <i class="fas fa-link mr-1"></i>プロンプト: \${sub.prompt_title}
+                        <i class="fas fa-link mr-1"></i>プロンプト: \${escapeHtml(sub.prompt_title)}
                       </a>
                     </div>
                     <button onclick="deleteAdminSubmission(\${sub.id})" 
