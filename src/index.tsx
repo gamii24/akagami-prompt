@@ -3361,6 +3361,320 @@ app.get('/admin-51adc6a8e924b23431240a1156034bae', (c) => {
   `)
 })
 
+// Login/Register page (combined)
+app.get('/login', (c) => {
+  return c.html(\`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ログイン・新規登録 | Akagami Prompt</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <style>
+          body { font-family: 'M PLUS Rounded 1c', sans-serif; }
+          :root { --accent-color: #E94B6F; }
+          .accent-bg { background-color: var(--accent-color); }
+          .accent-text { color: var(--accent-color); }
+        </style>
+    </head>
+    <body class="bg-gray-50">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="max-w-md w-full">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold accent-text mb-2">
+                        <i class="fas fa-rocket mr-2"></i>Akagami Prompt
+                    </h1>
+                    <p class="text-gray-600">ログインまたは新規登録</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <!-- Tab buttons -->
+                    <div class="flex mb-6 border-b border-gray-200">
+                        <button onclick="showTab('login')" id="tab-login" class="flex-1 py-3 font-semibold accent-text border-b-2" style="border-color: var(--accent-color)">
+                            ログイン
+                        </button>
+                        <button onclick="showTab('register')" id="tab-register" class="flex-1 py-3 font-semibold text-gray-500 border-b-2 border-transparent">
+                            新規登録
+                        </button>
+                    </div>
+
+                    <!-- Login form -->
+                    <form id="login-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+                            <input type="email" id="login-email" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
+                            <input type="password" id="login-password" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        </div>
+                        <button type="submit" class="w-full accent-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
+                            ログイン
+                        </button>
+                    </form>
+
+                    <!-- Register form -->
+                    <form id="register-form" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ニックネーム</label>
+                            <input type="text" id="register-nickname" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+                            <input type="email" id="register-email" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">パスワード（8文字以上）</label>
+                            <input type="password" id="register-password" required minlength="8"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        </div>
+                        <button type="submit" class="w-full accent-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
+                            新規登録
+                        </button>
+                        <p class="text-xs text-gray-500 text-center">登録後、メールで認証リンクが送信されます</p>
+                    </form>
+
+                    <div class="mt-6 text-center">
+                        <a href="/" class="text-sm text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-arrow-left mr-1"></i>トップページへ戻る
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <script>
+            function showTab(tab) {
+                if (tab === 'login') {
+                    document.getElementById('login-form').classList.remove('hidden');
+                    document.getElementById('register-form').classList.add('hidden');
+                    document.getElementById('tab-login').classList.add('accent-text', 'border-b-2');
+                    document.getElementById('tab-login').style.borderColor = 'var(--accent-color)';
+                    document.getElementById('tab-register').classList.remove('accent-text');
+                    document.getElementById('tab-register').classList.add('text-gray-500', 'border-transparent');
+                } else {
+                    document.getElementById('register-form').classList.remove('hidden');
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('tab-register').classList.add('accent-text', 'border-b-2');
+                    document.getElementById('tab-register').style.borderColor = 'var(--accent-color)';
+                    document.getElementById('tab-login').classList.remove('accent-text');
+                    document.getElementById('tab-login').classList.add('text-gray-500', 'border-transparent');
+                }
+            }
+
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                try {
+                    const response = await axios.post('/api/auth/login', { email, password });
+                    alert('ログインしました！');
+                    window.location.href = '/';
+                } catch (error) {
+                    alert(error.response?.data?.error || 'ログインに失敗しました');
+                }
+            });
+
+            document.getElementById('register-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nickname = document.getElementById('register-nickname').value;
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+
+                try {
+                    const response = await axios.post('/api/auth/register', { nickname, email, password });
+                    alert(response.data.message);
+                    showTab('login');
+                } catch (error) {
+                    alert(error.response?.data?.error || '登録に失敗しました');
+                }
+            });
+        </script>
+    </body>
+    </html>
+  \`)
+})
+
+// Verify email page
+app.get('/verify', async (c) => {
+  const token = c.req.query('token')
+  
+  if (!token) {
+    return c.html('<h1>無効なトークンです</h1>')
+  }
+
+  try {
+    const response = await fetch(\`\${new URL(c.req.url).origin}/api/auth/verify?token=\${token}\`)
+    const result = await response.json()
+
+    return c.html(\`
+      <!DOCTYPE html>
+      <html lang="ja">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>メール認証 | Akagami Prompt</title>
+          <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            :root { --accent-color: #E94B6F; }
+            .accent-bg { background-color: var(--accent-color); }
+          </style>
+      </head>
+      <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+          <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+              \${result.success 
+                ? '<div><i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i><h1 class="text-2xl font-bold text-gray-800 mb-2">認証完了！</h1><p class="text-gray-600 mb-6">ログインしてください</p><a href="/login" class="inline-block accent-bg text-white px-6 py-3 rounded-lg font-semibold">ログインページへ</a></div>'
+                : '<div><i class="fas fa-times-circle text-6xl text-red-500 mb-4"></i><h1 class="text-2xl font-bold text-gray-800 mb-2">認証失敗</h1><p class="text-gray-600 mb-6">\${result.error}</p><a href="/" class="inline-block accent-bg text-white px-6 py-3 rounded-lg font-semibold">トップページへ</a></div>'
+              }
+          </div>
+      </body>
+      </html>
+    \`)
+  } catch (error) {
+    return c.html('<h1>エラーが発生しました</h1>')
+  }
+})
+
+// My page
+app.get('/mypage', (c) => {
+  return c.html(\`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>マイページ | Akagami Prompt</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <style>
+          body { font-family: 'M PLUS Rounded 1c', sans-serif; }
+          :root { --accent-color: #E94B6F; }
+          .accent-bg { background-color: var(--accent-color); }
+          .accent-text { color: var(--accent-color); }
+        </style>
+    </head>
+    <body class="bg-gray-50">
+        <div class="max-w-4xl mx-auto p-4 py-8">
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+                <h1 class="text-3xl font-bold accent-text mb-4">
+                    <i class="fas fa-user-circle mr-2"></i>マイページ
+                </h1>
+                <div id="user-info" class="mb-6">
+                    <p class="text-gray-600">読み込み中...</p>
+                </div>
+                <button onclick="logout()" class="accent-bg text-white px-6 py-2 rounded-lg hover:opacity-90">
+                    <i class="fas fa-sign-out-alt mr-2"></i>ログアウト
+                </button>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-images mr-2 accent-text"></i>投稿履歴
+                </h2>
+                <div id="submissions-list">
+                    <p class="text-gray-600">読み込み中...</p>
+                </div>
+            </div>
+
+            <div class="mt-6 text-center">
+                <a href="/" class="text-sm text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left mr-1"></i>トップページへ戻る
+                </a>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <script>
+            async function checkAuth() {
+                try {
+                    const response = await axios.get('/api/auth/me');
+                    const user = response.data.user;
+                    document.getElementById('user-info').innerHTML = \\\`
+                        <p class="text-lg"><strong>ニックネーム:</strong> \\\${user.nickname}</p>
+                        <p class="text-sm text-gray-600"><strong>メール:</strong> \\\${user.email}</p>
+                    \\\`;
+                    loadSubmissions();
+                } catch (error) {
+                    alert('ログインしてください');
+                    window.location.href = '/login';
+                }
+            }
+
+            async function loadSubmissions() {
+                try {
+                    const response = await axios.get('/api/submissions/my');
+                    const submissions = response.data;
+
+                    if (submissions.length === 0) {
+                        document.getElementById('submissions-list').innerHTML = '<p class="text-gray-500">まだ投稿がありません</p>';
+                        return;
+                    }
+
+                    document.getElementById('submissions-list').innerHTML = submissions.map(sub => \\\`
+                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-center gap-4">
+                                <img src="\\\${sub.image_url}" class="w-32 h-32 object-cover rounded-lg">
+                                <div class="flex-1">
+                                    <a href="/prompt/\\\${sub.prompt_id}" class="text-blue-600 hover:underline font-semibold">\\\${sub.prompt_title}</a>
+                                    <p class="text-sm text-gray-500 mt-1">\\\${new Date(sub.created_at).toLocaleString('ja-JP')}</p>
+                                    <p class="text-sm mt-2">
+                                        \\\${sub.is_approved 
+                                            ? '<span class="text-green-600"><i class="fas fa-check-circle"></i> 承認済み</span>' 
+                                            : '<span class="text-yellow-600"><i class="fas fa-clock"></i> 承認待ち</span>'
+                                        }
+                                    </p>
+                                    <button onclick="deleteSubmission(\\\${sub.id})" class="text-red-600 hover:text-red-800 text-sm mt-2">
+                                        <i class="fas fa-trash mr-1"></i>削除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    \\\`).join('');
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+
+            async function deleteSubmission(id) {
+                if (!confirm('この投稿を削除しますか？')) return;
+
+                try {
+                    await axios.delete(\\\`/api/submissions/\\\${id}\\\`);
+                    alert('削除しました');
+                    loadSubmissions();
+                } catch (error) {
+                    alert('削除に失敗しました');
+                }
+            }
+
+            async function logout() {
+                try {
+                    await axios.post('/api/auth/logout');
+                    alert('ログアウトしました');
+                    window.location.href = '/';
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+
+            checkAuth();
+        </script>
+    </body>
+    </html>
+  \`)
+})
+
 // How to use page
 app.get('/how-to-use', (c) => {
   return c.html(`
